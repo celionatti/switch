@@ -1,0 +1,36 @@
+{
+    "name": "switch/sandbox-app",
+    "description": "Sandbox Application consuming Switch PHP Framework local packages",
+    "type": "project",
+    "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../packages/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "switch/container": "*",
+        "switch/http-message": "*",
+        "switch/router": "*",
+        "switch/events": "*",
+        "switch/config": "*",
+        "switch/kernel": "*",
+        "switch/view": "*",
+        "switch/database": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    }
+}

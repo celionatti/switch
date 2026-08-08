@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         executionOrder="depends,defects"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="Container">
+            <directory>packages/container/tests</directory>
+        </testsuite>
+        <testsuite name="HttpMessage">
+            <directory>packages/http-message/tests</directory>
+        </testsuite>
+        <testsuite name="Router">
+            <directory>packages/router/tests</directory>
+        </testsuite>
+        <testsuite name="Events">
+            <directory>packages/events/tests</directory>
+        </testsuite>
+        <testsuite name="Config">
+            <directory>packages/config/tests</directory>
+        </testsuite>
+        <testsuite name="Kernel">
+            <directory>packages/kernel/tests</directory>
+        </testsuite>
+        <testsuite name="View">
+            <directory>packages/view/tests</directory>
+        </testsuite>
+        <testsuite name="Database">
+            <directory>packages/database/tests</directory>
+        </testsuite>
+        <testsuite name="Sandbox">
+            <directory>sandbox/tests</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">packages/*/src</directory>
+            <directory suffix=".php">sandbox/src</directory>
+        </include>
+    </source>
+</phpunit>

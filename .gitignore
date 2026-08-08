@@ -1,0 +1,9 @@
+/vendor/
+composer.lock
+*.cache
+*.log
+.env
+.idea/
+.vscode/
+*.swp
+*.swo

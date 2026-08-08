@@ -1,0 +1,20 @@
+{
+    "name": "switch/events",
+    "description": "Switch Framework Event Dispatcher Package (PSR-14)",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "psr/event-dispatcher": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Switch\\Event\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Switch\\Event\\Tests\\": "tests/"
+        }
+    }
+}
