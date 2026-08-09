@@ -29,7 +29,8 @@
         "switch/config": "*",
         "switch/kernel": "*",
         "switch/view": "*",
-        "switch/database": "*"
+        "switch/database": "*",
+        "switch/error-handler": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5 || ^11.0"
@@ -44,6 +45,7 @@
             "Switch\\Kernel\\": "packages/kernel/src/",
             "Switch\\View\\": "packages/view/src/",
             "Switch\\Database\\": "packages/database/src/",
+            "Switch\\ErrorHandler\\": "packages/error-handler/src/",
             "App\\": "sandbox/src/",
             "Switch\\Tests\\Integration\\": "tests/Integration/"
         }
