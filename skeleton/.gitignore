@@ -1,5 +1,6 @@
 /vendor/
 /.env
+/bootstrap/dev-autoload.php
 /storage/views/*
 !/storage/views/.gitkeep
 /storage/cache/*
