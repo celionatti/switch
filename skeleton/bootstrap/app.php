@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Switch\Kernel\App;
+use Switch\Kernel\Config\MiddlewareCollector;
+use Switch\Kernel\Config\ExceptionsCollector;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,10 +21,10 @@ return App::configure(basePath: dirname(__DIR__))
         web: __DIR__ . '/../routes/web.php',
         api: __DIR__ . '/../routes/api.php',
     )
-    ->withMiddleware(function ($middleware) {
-        // Register global or route middleware here
+    ->withMiddleware(function (MiddlewareCollector $middleware) {
+        // Example: $middleware->append(MyGlobalMiddleware::class);
     })
-    ->withExceptions(function ($exceptions) {
-        // Register custom exception handling here
+    ->withExceptions(function (ExceptionsCollector $exceptions) {
+        // Example: $exceptions->report(fn(Throwable $e) => custom_log($e));
     })
     ->create();
