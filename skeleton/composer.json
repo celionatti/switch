@@ -1,0 +1,56 @@
+{
+    "name": "switch/switch",
+    "description": "Switch — A fast, modular, and futuristic PHP framework.",
+    "type": "project",
+    "keywords": ["framework", "php", "switch", "modular", "modern"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "celionatti",
+            "homepage": "https://github.com/celionatti"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "psr/container": "^2.0",
+        "psr/http-message": "^2.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-server-handler": "^1.0",
+        "psr/http-server-middleware": "^1.0",
+        "psr/event-dispatcher": "^1.0",
+        "switch/container": "^1.0",
+        "switch/http-message": "^1.0",
+        "switch/router": "^1.0",
+        "switch/events": "^1.0",
+        "switch/config": "^1.0",
+        "switch/kernel": "^1.0",
+        "switch/view": "^1.0",
+        "switch/database": "^1.0",
+        "switch/error-handler": "^1.0",
+        "switch/console": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5 || ^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "serve": "php switch serve",
+        "tinker": "php switch tinker"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
