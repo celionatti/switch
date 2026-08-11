@@ -3,412 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Switch — The Modern PHP Framework</title>
+    <title>Switch Framework — Let's Get Started</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        
+
         :root {
-            --bg-main: #0b0f17;
-            --bg-card: rgba(255, 255, 255, 0.025);
-            --bg-card-hover: rgba(255, 255, 255, 0.045);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(239, 68, 68, 0.4);
-            --accent-red: #ef4444;
-            --accent-gradient: linear-gradient(135deg, #f87171, #ef4444, #dc2626);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
+            --bg-black: #0a0a0a;
+            --card-bg: #121214;
+            --card-border: #1e1e24;
+            --text-primary: #ededed;
+            --text-muted: #888890;
+            --text-dim: #555560;
+            
+            /* Unique Switch Theme: Electric Cyan to Neon Violet */
+            --switch-cyan: #06b6d4;
+            --switch-cyan-glow: #22d3ee;
+            --switch-purple: #8b5cf6;
+            --switch-purple-dark: #581c87;
+            --switch-gradient: linear-gradient(135deg, #06b6d4, #8b5cf6);
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-main);
+            font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-black);
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            line-height: 1.6;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.12) 0%, transparent 60%),
-                radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.06) 0%, transparent 40%);
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            line-height: 1.5;
         }
 
-        /* Top Navigation */
-        header {
-            max-width: 1200px;
+        /* Main Container Card */
+        .container {
+            max-width: 960px;
             width: 100%;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            min-height: 480px;
         }
 
-        .brand {
+        /* Left Panel */
+        .left-panel {
+            padding: 3.5rem 3rem;
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .heading-group h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
             color: var(--text-primary);
-            font-weight: 700;
-            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
             letter-spacing: -0.02em;
         }
 
-        .brand-icon {
-            width: 34px;
-            height: 34px;
-            background: var(--accent-gradient);
-            border-radius: 9px;
+        .heading-group p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+        }
+
+        /* Timeline Checklist */
+        .checklist {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .checklist::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 24px;
+            bottom: 24px;
+            width: 1px;
+            background-color: var(--card-border);
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .check-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--card-border);
+            background-color: var(--card-bg);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
-        nav {
-            display: flex;
-            align-items: center;
-            gap: 1.75rem;
+        .check-circle::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: transparent;
+            transition: background-color 0.2s ease;
         }
 
-        nav a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
+        .check-item:hover .check-circle {
+            border-color: var(--switch-cyan-glow);
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+        }
+
+        .check-item:hover .check-circle::after {
+            background-color: var(--switch-cyan-glow);
+        }
+
+        .link-text {
+            color: var(--switch-cyan-glow);
+            border-bottom: 1px dotted var(--switch-cyan);
             transition: color 0.2s ease;
         }
 
-        nav a:hover {
-            color: var(--text-primary);
+        .check-item:hover .link-text {
+            color: #67e8f9;
         }
 
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            color: var(--text-primary) !important;
-            transition: all 0.2s ease;
+        .arrow-icon {
+            font-size: 0.8rem;
+            margin-left: 2px;
+            color: var(--switch-cyan);
         }
 
-        .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Hero Container */
-        .hero-container {
-            max-width: 1000px;
-            width: 100%;
-            margin: 3.5rem auto 0;
-            padding: 0 1.5rem;
-            text-align: center;
-        }
-
-        .version-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            padding: 0.35rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.825rem;
-            font-weight: 500;
-            color: #fca5a5;
-            margin-bottom: 2rem;
-        }
-
-        .version-badge span {
-            width: 6px;
-            height: 6px;
-            background: var(--accent-red);
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        h1 {
-            font-size: clamp(2.5rem, 5.5vw, 4.2rem);
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            color: #ffffff;
-        }
-
-        h1 span {
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p.hero-desc {
-            font-size: clamp(1.05rem, 2vw, 1.25rem);
-            color: var(--text-secondary);
-            max-width: 680px;
-            margin: 0 auto 2.5rem;
-            font-weight: 400;
-        }
-
-        .cta-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 4rem;
-        }
-
-        .btn-primary {
-            background: var(--accent-gradient);
-            color: #ffffff;
-            font-weight: 600;
-            padding: 0.85rem 2rem;
-            border-radius: 10px;
-            text-decoration: none;
-            font-size: 0.95rem;
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
-            transition: all 0.25s ease;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(239, 68, 68, 0.45);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            font-weight: 500;
-            padding: 0.85rem 2rem;
-            border-radius: 10px;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: all 0.25s ease;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Code Preview Terminal */
-        .terminal-box {
-            max-width: 750px;
-            margin: 0 auto 5rem;
-            background: #06090e;
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            text-align: left;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-        }
-
-        .terminal-header {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 0.75rem 1.25rem;
-            border-bottom: 1px solid var(--border-color);
+        /* Action Controls */
+        .action-area {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-        }
-
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .dot-red { background: #ef4444; }
-        .dot-yellow { background: #f59e0b; }
-        .dot-green { background: #10b981; }
-
-        .terminal-title {
-            margin-left: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .terminal-body {
-            padding: 1.5rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            line-height: 1.7;
-            color: #e2e8f0;
-            overflow-x: auto;
-        }
-
-        .keyword { color: #f472b6; }
-        .function { color: #60a5fa; }
-        .string { color: #34d399; }
-        .comment { color: var(--text-muted); }
-
-        /* Feature Cards Grid */
-        .grid-container {
-            max-width: 1100px;
-            margin: 0 auto 5rem;
-            padding: 0 1.5rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 1.5rem;
         }
 
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.75rem;
-            transition: all 0.25s ease;
+        .btn-deploy {
+            background-color: #ffffff;
+            color: #0a0a0a;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.65rem 1.4rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
         }
 
-        .card:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--border-hover);
-            transform: translateY(-4px);
+        .btn-deploy:hover {
+            background-color: #e5e5e5;
+            transform: translateY(-1px);
         }
 
-        .card-icon {
-            width: 42px;
-            height: 42px;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            border-radius: 10px;
+        .changelog-footer {
+            font-size: 0.85rem;
+            color: var(--text-dim);
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            margin-bottom: 1.25rem;
+            gap: 0.5rem;
+            margin-top: 2rem;
         }
 
-        .card h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #ffffff;
+        .changelog-footer a {
+            color: var(--switch-cyan-glow);
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
-        .card p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
+        /* Right Graphic Panel */
+        .right-panel {
+            background-color: #06080d;
+            border-left: 1px solid var(--card-border);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 2rem;
+            user-select: none;
         }
 
-        /* Footer */
-        footer {
-            margin-top: auto;
-            border-top: 1px solid var(--border-color);
-            padding: 2.5rem 1.5rem;
-            text-align: center;
-            font-size: 0.875rem;
-            color: var(--text-muted);
+        .graphic-brand {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: var(--switch-cyan);
+            line-height: 1;
+            z-index: 2;
+            text-transform: none;
         }
 
-        footer a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            margin: 0 0.5rem;
+        /* Abstract Layered 3D Typography Graphic */
+        .graphic-stack {
+            position: absolute;
+            right: -20px;
+            bottom: -30px;
+            width: 320px;
+            height: 300px;
+            pointer-events: none;
+            z-index: 1;
         }
 
-        footer a:hover {
-            color: var(--text-primary);
+        .version-text {
+            font-size: 11rem;
+            font-weight: 900;
+            line-height: 0.85;
+            font-family: 'Instrument Sans', sans-serif;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            letter-spacing: -0.06em;
         }
 
-        @media (max-width: 640px) {
-            header { padding: 1.25rem 1rem; }
-            .hero-container { margin-top: 2rem; }
-            .cta-group { flex-direction: column; width: 100%; }
-            .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+        .v-layer-1 {
+            color: transparent;
+            -webkit-text-stroke: 1.5px rgba(6, 182, 212, 0.45);
+            transform: translate(-36px, -36px);
+        }
+
+        .v-layer-2 {
+            color: transparent;
+            -webkit-text-stroke: 1.5px rgba(139, 92, 246, 0.35);
+            transform: translate(-24px, -24px);
+        }
+
+        .v-layer-3 {
+            color: transparent;
+            -webkit-text-stroke: 1.5px rgba(6, 182, 212, 0.2);
+            transform: translate(-12px, -12px);
+        }
+
+        .v-layer-main {
+            color: #0e1726;
+            text-shadow: 0 0 40px rgba(6, 182, 212, 0.15);
+        }
+
+        /* Responsive Layout */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .right-panel {
+                min-height: 240px;
+                border-left: none;
+                border-top: 1px solid var(--card-border);
+            }
+            .left-panel {
+                padding: 2.5rem 1.75rem;
+            }
+            .graphic-brand {
+                font-size: 3rem;
+            }
+            .version-text {
+                font-size: 8rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <header>
-        <a href="/" class="brand">
-            <div class="brand-icon">⚡</div>
-            <span>Switch</span>
-        </a>
-        <nav>
-            <a href="/about">About</a>
-            <a href="/api/status">API</a>
-            <a href="https://github.com/celionatti/switch" class="nav-btn" target="_blank">GitHub</a>
-        </nav>
-    </header>
-
-    <!-- Hero -->
-    <section class="hero-container">
-        <div class="version-badge">
-            <span></span> Switch v{{ $version ?? '1.0.0' }} Released
-        </div>
+    <!-- Main Card Container -->
+    <div class="container">
         
-        <h1>The PHP Framework for<br><span>Modern Web Artisans</span></h1>
-        
-        <p class="hero-desc">
-            Switch is an ultra-fast, modular PHP framework built with clean architecture, HTML tag components, active record ORM, and a colorful CLI.
-        </p>
+        <!-- Left Column: Navigation & Starter Steps -->
+        <div class="left-panel">
+            <div>
+                <div class="heading-group">
+                    <h2>Let's get started</h2>
+                    <p>With so many options available to you, we suggest you start with the following:</p>
+                </div>
 
-        <div class="cta-group">
-            <a href="https://github.com/celionatti/switch" class="btn-primary" target="_blank">Get Started</a>
-            <a href="/about" class="btn-secondary">Explore Features</a>
-        </div>
+                <!-- Step Checklist -->
+                <div class="checklist">
+                    <a href="https://github.com/celionatti/switch" target="_blank" class="check-item">
+                        <div class="check-circle"></div>
+                        <span>Read the <span class="link-text">Documentation</span> <span class="arrow-icon">↗</span></span>
+                    </a>
 
-        <!-- Terminal Preview -->
-        <div class="terminal-box">
-            <div class="terminal-header">
-                <div class="dot dot-red"></div>
-                <div class="dot dot-yellow"></div>
-                <div class="dot dot-green"></div>
-                <div class="terminal-title">routes/web.php</div>
+                    <a href="/api/status" class="check-item">
+                        <div class="check-circle"></div>
+                        <span>Explore the <span class="link-text">API Endpoints</span> <span class="arrow-icon">↗</span></span>
+                    </a>
+
+                    <a href="https://github.com/celionatti/switch-console" target="_blank" class="check-item">
+                        <div class="check-circle"></div>
+                        <span>Run CLI &amp; REPL via <span class="link-text">Switch Tinker</span> <span class="arrow-icon">↗</span></span>
+                    </a>
+                </div>
+
+                <!-- Deploy Button -->
+                <div class="action-area">
+                    <a href="https://github.com/celionatti/switch" target="_blank" class="btn-deploy">Deploy now</a>
+                </div>
             </div>
-            <div class="terminal-body">
-                <span class="comment">// Define fluent HTTP routes in Switch</span><br>
-                <span class="keyword">use</span> Switch\Router\Facade\<span class="function">Route</span>;<br><br>
-                <span class="function">Route</span>::<span class="function">get</span>(<span class="string">'/'</span>, <span class="keyword">function</span> () {<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="function">view</span>(<span class="string">'home'</span>, [<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">'version'</span> =&gt; <span class="string">'1.0.0'</span><br>
-                &nbsp;&nbsp;&nbsp;&nbsp;]);<br>
-                });
+
+            <!-- Footer Changelog -->
+            <div class="changelog-footer">
+                <span>v1.0.0</span>
+                <a href="https://github.com/celionatti/switch" target="_blank">View changelog ↗</a>
             </div>
         </div>
-    </section>
 
-    <!-- Features Cards -->
-    <section class="grid-container">
-        <div class="card">
-            <div class="card-icon">⚡</div>
-            <h3>Blazing Performance</h3>
-            <p>Minimalist footprint with zero unnecessary bloat. Optimized route matching and fast rendering engine.</p>
+        <!-- Right Column: Abstract Typography Graphic -->
+        <div class="right-panel">
+            <div class="graphic-brand">Switch</div>
+
+            <!-- Multi-layered 3D Offset Version Graphic -->
+            <div class="graphic-stack">
+                <div class="version-text v-layer-1">1.0</div>
+                <div class="version-text v-layer-2">1.0</div>
+                <div class="version-text v-layer-3">1.0</div>
+                <div class="version-text v-layer-main">1.0</div>
+            </div>
         </div>
 
-        <div class="card">
-            <div class="card-icon">🧩</div>
-            <h3>10 Modular Packages</h3>
-            <p>Built on standalone PSR-compliant components (`switch/router`, `switch/database`, `switch/view`, `switch/console`).</p>
-        </div>
-
-        <div class="card">
-            <div class="card-icon">🛡️</div>
-            <h3>Security by Default</h3>
-            <p>Built-in CSRF tokens, honeypot protection, CSP nonces, and XSS HTML sanitization out of the box.</p>
-        </div>
-
-        <div class="card">
-            <div class="card-icon">💻</div>
-            <h3>Switch CLI &amp; Tinker</h3>
-            <p>Artisan-style console with code generators, colorful ANSI output, and an interactive `tinker` REPL shell.</p>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <p>Switch Framework is open-source software licensed under the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.</p>
-        <p style="margin-top: 0.5rem; font-size: 0.8rem;">Created by <a href="https://github.com/celionatti" target="_blank">celionatti</a> &bull; PHP 8.2+</p>
-    </footer>
+    </div>
 
 </body>
 </html>
