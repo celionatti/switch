@@ -49,7 +49,7 @@
             grid-template-columns: 1.15fr 1fr;
             overflow: hidden;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-            min-height: 480px;
+            min-height: 500px;
         }
 
         /* Left Panel */
@@ -193,70 +193,84 @@
 
         /* Right Graphic Panel */
         .right-panel {
-            background-color: #06080d;
+            background-color: #05070c;
             border-left: 1px solid var(--card-border);
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 2rem;
+            align-items: flex-start;
+            padding: 2.5rem 2.5rem;
             user-select: none;
         }
 
+        /* Bigger, Extra-Bold Brand Header */
         .graphic-brand {
-            font-size: 4rem;
-            font-weight: 800;
-            letter-spacing: -0.04em;
+            font-size: 5.5rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
             color: var(--switch-cyan);
-            line-height: 1;
-            z-index: 2;
+            line-height: 0.9;
+            z-index: 10;
             text-transform: none;
+            width: 100%;
         }
 
-        /* Abstract Layered 3D Typography Graphic */
-        .graphic-stack {
+        /* Centered Multi-Layered 3D Typography Graphic */
+        .graphic-container {
             position: absolute;
-            right: -20px;
-            bottom: -30px;
-            width: 320px;
-            height: 300px;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             pointer-events: none;
             z-index: 1;
         }
 
+        .graphic-stack {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .version-text {
-            font-size: 11rem;
+            font-size: 11.5rem;
             font-weight: 900;
             line-height: 0.85;
             font-family: 'Instrument Sans', sans-serif;
             position: absolute;
-            bottom: 0;
-            right: 0;
+            left: 50%;
+            top: 55%;
             letter-spacing: -0.06em;
+            white-space: nowrap;
         }
 
         .v-layer-1 {
             color: transparent;
-            -webkit-text-stroke: 1.5px rgba(6, 182, 212, 0.45);
-            transform: translate(-36px, -36px);
+            -webkit-text-stroke: 2.5px rgba(6, 182, 212, 0.55);
+            transform: translate(calc(-50% - 32px), calc(-50% - 32px));
         }
 
         .v-layer-2 {
             color: transparent;
-            -webkit-text-stroke: 1.5px rgba(139, 92, 246, 0.35);
-            transform: translate(-24px, -24px);
+            -webkit-text-stroke: 2px rgba(139, 92, 246, 0.4);
+            transform: translate(calc(-50% - 20px), calc(-50% - 20px));
         }
 
         .v-layer-3 {
             color: transparent;
-            -webkit-text-stroke: 1.5px rgba(6, 182, 212, 0.2);
-            transform: translate(-12px, -12px);
+            -webkit-text-stroke: 1.5px rgba(6, 182, 212, 0.25);
+            transform: translate(calc(-50% - 10px), calc(-50% - 10px));
         }
 
         .v-layer-main {
-            color: #0e1726;
-            text-shadow: 0 0 40px rgba(6, 182, 212, 0.15);
+            color: #0b1320;
+            transform: translate(-50%, -50%);
+            text-shadow: 0 0 50px rgba(6, 182, 212, 0.2);
         }
 
         /* Responsive Layout */
@@ -265,18 +279,19 @@
                 grid-template-columns: 1fr;
             }
             .right-panel {
-                min-height: 240px;
+                min-height: 280px;
                 border-left: none;
                 border-top: 1px solid var(--card-border);
+                padding: 2rem;
             }
             .left-panel {
                 padding: 2.5rem 1.75rem;
             }
             .graphic-brand {
-                font-size: 3rem;
+                font-size: 4rem;
             }
             .version-text {
-                font-size: 8rem;
+                font-size: 8.5rem;
             }
         }
     </style>
@@ -329,12 +344,14 @@
         <div class="right-panel">
             <div class="graphic-brand">Switch</div>
 
-            <!-- Multi-layered 3D Offset Version Graphic -->
-            <div class="graphic-stack">
-                <div class="version-text v-layer-1">1.0</div>
-                <div class="version-text v-layer-2">1.0</div>
-                <div class="version-text v-layer-3">1.0</div>
-                <div class="version-text v-layer-main">1.0</div>
+            <!-- Centered Multi-Layered 3D Version Graphic -->
+            <div class="graphic-container">
+                <div class="graphic-stack">
+                    <div class="version-text v-layer-1">1.0</div>
+                    <div class="version-text v-layer-2">1.0</div>
+                    <div class="version-text v-layer-3">1.0</div>
+                    <div class="version-text v-layer-main">1.0</div>
+                </div>
             </div>
         </div>
 
