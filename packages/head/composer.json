@@ -1,0 +1,28 @@
+{
+    "name": "switch/head",
+    "description": "Switch Framework Head, Meta, SEO, OpenGraph & JSON-LD Manager",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "celionatti",
+            "homepage": "https://github.com/celionatti"
+        }
+    ],
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
+        "psr-4": {
+            "Switch\\Head\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Switch\\Head\\Tests\\": "tests/"
+        }
+    }
+}
