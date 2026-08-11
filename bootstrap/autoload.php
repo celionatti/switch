@@ -30,7 +30,7 @@ spl_autoload_register(function (string $class) {
     }
 });
 
-// Optional development fallback autoloader (ignored in production skeleton)
-if (!class_exists(\Switch\Kernel\App::class) && file_exists(__DIR__ . '/dev-autoload.php')) {
+// Optional development fallback autoloader (ignored in published skeleton)
+if (file_exists(__DIR__ . '/dev-autoload.php')) {
     require_once __DIR__ . '/dev-autoload.php';
 }
