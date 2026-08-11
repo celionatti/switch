@@ -13,8 +13,9 @@ $basePath = dirname(__DIR__);
 
 // 1. Initialize Configuration
 $configPath = $basePath . '/config';
+$config = new Config();
 if (is_dir($configPath)) {
-    $config = new Config($configPath);
+    $config->loadFromDirectory($configPath);
 }
 
 // 2. Initialize Database Connection if configured
@@ -24,7 +25,9 @@ if (file_exists($dbFile) || is_dir(dirname($dbFile))) {
         mkdir(dirname($dbFile), 0777, true);
     }
     $connection = Connection::sqlite($dbFile);
-    ConnectionManager::addConnection('default', $connection);
+    if (class_exists(\Switch\Database\ORM\Model::class)) {
+        \Switch\Database\ORM\Model::setConnection($connection);
+    }
 }
 
 // 3. Initialize View Engine
@@ -35,8 +38,12 @@ if (is_dir($viewsPath)) {
     View::setEngine($viewEngine);
 }
 
-// 4. Create App Kernel
-$app = App::create();
+// 4. Create App Kernel with Router singleton
+$router = class_exists(\Switch\Router\Facade\Route::class)
+    ? \Switch\Router\Facade\Route::getRouter()
+    : null;
+
+$app = new App(router: $router);
 $app->setBasePath($basePath);
 
 return $app;

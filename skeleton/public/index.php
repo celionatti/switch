@@ -5,11 +5,30 @@ declare(strict_types=1);
 define('SWITCH_START', microtime(true));
 
 // Autoload Composer Dependencies
-$autoloadFile = __DIR__ . '/../vendor/autoload.php';
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../vendor/autoload.php',
+];
 
-if (file_exists($autoloadFile)) {
-    require_once $autoloadFile;
-} else {
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        break;
+    }
+}
+
+// App autoloader for project app/ directory
+spl_autoload_register(function (string $class) {
+    if (str_starts_with($class, 'App\\')) {
+        $file = __DIR__ . '/../app/' . str_replace('\\', '/', substr($class, 4)) . '.php';
+        if (file_exists($file)) {
+            require_once $file;
+            return;
+        }
+    }
+});
+
+if (!class_exists(\Switch\Kernel\App::class)) {
     // Fallback monorepo autoloader for development
     spl_autoload_register(function (string $class) {
         $map = [
