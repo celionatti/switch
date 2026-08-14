@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use Switch\View\View;
-use Switch\Live\LiveResponse;
+use Switch\Controller\Controller;
 
-class HomeController
+class HomeController extends Controller
 {
     private static int $count = 0;
 
     public function index(): string
     {
-        return View::render('home', [
+        return $this->view('home', [
             'title' => 'Switch Framework — The High-Velocity PHP Framework',
             'framework' => 'Switch',
             'version' => '1.0.0',
@@ -68,14 +67,14 @@ class HomeController
     public function incrementCounter(): string
     {
         $current = isset($_POST['count']) ? (int) $_POST['count'] + 1 : 1;
-        LiveResponse::toast("Counter increased to {$current}!", 'success');
-        return View::render('partials.counter-demo', ['count' => $current]);
+        $this->toast("Counter increased to {$current}!", 'success');
+        return $this->view('partials.counter-demo', ['count' => $current]);
     }
 
     public function decrementCounter(): string
     {
         $current = isset($_POST['count']) ? (int) $_POST['count'] - 1 : 0;
-        LiveResponse::toast("Counter decreased to {$current}.", 'info');
-        return View::render('partials.counter-demo', ['count' => $current]);
+        $this->toast("Counter decreased to {$current}.", 'info');
+        return $this->view('partials.counter-demo', ['count' => $current]);
     }
 }

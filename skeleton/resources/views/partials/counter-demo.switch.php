@@ -1,3 +1,4 @@
+<php> $count = $count ?? 0; </php>
 <div id="live-counter-box" class="counter-card" switch-preserve-scroll>
     <div class="counter-header">
         <span class="counter-tag">⚡ Live Reactive Component</span>
