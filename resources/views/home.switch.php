@@ -1,6 +1,11 @@
 <layout name="layouts.app" />
 
 <section name="content">
+    <php>
+        $version = $version ?? '1.0.0';
+        $quickstart = $quickstart ?? [];
+        $features = $features ?? [];
+    </php>
     <style>
         /* Hero Section */
         .hero {

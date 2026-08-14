@@ -1,3 +1,4 @@
+<php> $version = $version ?? '1.0.0'; </php>
 <header class="switch-navbar">
     <div class="navbar-inner">
         <a href="/" class="brand-logo" switch-to switch-prefetch>
