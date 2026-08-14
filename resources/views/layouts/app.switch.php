@@ -329,6 +329,7 @@
         <include file="partials.footer" />
     </div>
 
+    <flash />
     @liveScripts
 </body>
 </html>
