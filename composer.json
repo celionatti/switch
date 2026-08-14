@@ -34,7 +34,8 @@
         "switch/console": "*",
         "switch/head": "*",
         "switch/live": "*",
-        "switch/controller": "*"
+        "switch/controller": "*",
+        "switch/session": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5 || ^11.0"
@@ -54,9 +55,16 @@
             "Switch\\Head\\": "packages/head/src/",
             "Switch\\Live\\": "packages/live/src/",
             "Switch\\Controller\\": "packages/controller/src/",
+            "Switch\\Session\\": "packages/session/src/",
             "App\\": "sandbox/src/",
             "Switch\\Tests\\Integration\\": "tests/Integration/"
-        }
+        },
+        "files": [
+            "packages/head/src/helpers.php",
+            "packages/live/src/helpers.php",
+            "packages/controller/src/helpers.php",
+            "packages/session/src/helpers.php"
+        ]
     },
     "scripts": {
         "test": "phpunit --colors=always"
