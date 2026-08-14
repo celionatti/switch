@@ -1,361 +1,508 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Switch Framework — Let's Get Started</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<layout name="layouts.app" />
 
-        :root {
-            --bg-black: #0a0a0a;
-            --card-bg: #121214;
-            --card-border: #1e1e24;
-            --text-primary: #ededed;
-            --text-muted: #888890;
-            --text-dim: #555560;
-            
-            /* Unique Switch Theme: Electric Cyan to Neon Violet */
-            --switch-cyan: #06b6d4;
-            --switch-cyan-glow: #22d3ee;
-            --switch-purple: #8b5cf6;
-            --switch-purple-dark: #581c87;
-            --switch-gradient: linear-gradient(135deg, #06b6d4, #8b5cf6);
+<section name="content">
+    <style>
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem 4rem;
+            max-width: 860px;
+            margin: 0 auto;
         }
 
-        body {
-            font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-black);
-            color: var(--text-primary);
-            min-height: 100vh;
+        .hero-badge-wrap {
+            display: inline-flex;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            border-radius: var(--radius-full);
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--cyan-400);
+            letter-spacing: 0.02em;
+        }
+
+        .hero-title {
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.035em;
+            margin-bottom: 1.25rem;
+            color: #ffffff;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #22d3ee 0%, #38bdf8 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-description {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 2.25rem;
+            max-width: 680px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-cta {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem;
-            line-height: 1.5;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
-        /* Main Container Card */
-        .container {
-            max-width: 960px;
-            width: 100%;
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.8rem 1.6rem;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #06b6d4, #2563eb);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.35);
+            transition: var(--transition-smooth);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(6, 182, 212, 0.5);
+            background: linear-gradient(135deg, #0891b2, #1d4ed8);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--radius-md);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-elevated);
+        }
+
+        /* Showcase Grid */
+        .showcase-grid {
             display: grid;
             grid-template-columns: 1.15fr 1fr;
-            overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-            min-height: 500px;
-        }
-
-        /* Left Panel */
-        .left-panel {
-            padding: 3.5rem 3rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .heading-group h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.02em;
-        }
-
-        .heading-group p {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-            margin-bottom: 2.5rem;
-        }
-
-        /* Timeline Checklist */
-        .checklist {
-            position: relative;
-            display: flex;
-            flex-direction: column;
             gap: 1.75rem;
-            margin-bottom: 2.5rem;
+            margin-bottom: 4rem;
         }
 
-        .checklist::before {
-            content: '';
-            position: absolute;
-            left: 10px;
-            top: 24px;
-            bottom: 24px;
-            width: 1px;
-            background-color: var(--card-border);
+        /* Terminal Quickstart Card */
+        .terminal-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
         }
 
-        .check-item {
+        .terminal-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            position: relative;
-            z-index: 1;
-            text-decoration: none;
-            color: var(--text-primary);
-            font-size: 0.95rem;
+            justify-content: space-between;
+            padding: 0.85rem 1.25rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .terminal-dots {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-green { background: #10b981; }
+
+        .terminal-title {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-dim);
             font-weight: 500;
         }
 
-        .check-circle {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid var(--card-border);
-            background-color: var(--card-bg);
+        .terminal-body {
+            padding: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            flex: 1;
+        }
+
+        .terminal-step {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .step-label {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            font-family: var(--font-sans);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .step-cmd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-base);
+            padding: 0.65rem 0.9rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-subtle);
+            color: var(--cyan-400);
+            word-break: break-all;
+        }
+
+        .prompt-symbol {
+            color: var(--text-dim);
+            user-select: none;
+            margin-right: 0.5rem;
+        }
+
+        /* Interactive Counter Card */
+        .counter-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 2.25rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .counter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #06b6d4, #6366f1);
+        }
+
+        .counter-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .counter-tag {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--cyan-400);
+        }
+
+        .counter-badge {
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            padding: 0.15rem 0.5rem;
+            border-radius: var(--radius-full);
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--emerald-400);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .counter-number {
+            font-size: clamp(3.5rem, 8vw, 5rem);
+            font-weight: 800;
+            font-family: var(--font-mono);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff 40%, var(--cyan-400) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .counter-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 1.75rem;
+        }
+
+        .counter-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-counter {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .check-circle::after {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: transparent;
-            transition: background-color 0.2s ease;
-        }
-
-        .check-item:hover .check-circle {
-            border-color: var(--switch-cyan-glow);
-            box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
-        }
-
-        .check-item:hover .check-circle::after {
-            background-color: var(--switch-cyan-glow);
-        }
-
-        .link-text {
-            color: var(--switch-cyan-glow);
-            border-bottom: 1px dotted var(--switch-cyan);
-            transition: color 0.2s ease;
-        }
-
-        .check-item:hover .link-text {
-            color: #67e8f9;
-        }
-
-        .arrow-icon {
-            font-size: 0.8rem;
-            margin-left: 2px;
-            color: var(--switch-cyan);
-        }
-
-        /* Action Controls */
-        .action-area {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .btn-deploy {
-            background-color: #ffffff;
-            color: #0a0a0a;
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 0.65rem 1.4rem;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
-
-        .btn-deploy:hover {
-            background-color: #e5e5e5;
-            transform: translateY(-1px);
-        }
-
-        .changelog-footer {
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 2rem;
-        }
-
-        .changelog-footer a {
-            color: var(--switch-cyan-glow);
-            text-decoration: underline;
-            text-underline-offset: 3px;
-        }
-
-        /* Right Graphic Panel */
-        .right-panel {
-            background-color: #05070c;
-            border-left: 1px solid var(--card-border);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 2.5rem 2.5rem;
+            cursor: pointer;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-elevated);
+            color: var(--text-main);
+            transition: var(--transition-smooth);
             user-select: none;
         }
 
-        /* Bigger, Extra-Bold Brand Header */
-        .graphic-brand {
-            font-size: 5.5rem;
-            font-weight: 900;
-            letter-spacing: -0.05em;
-            color: var(--switch-cyan);
-            line-height: 0.9;
-            z-index: 10;
-            text-transform: none;
-            width: 100%;
+        .btn-counter:hover {
+            transform: scale(1.08);
         }
 
-        /* Centered Multi-Layered 3D Typography Graphic */
-        .graphic-container {
-            position: absolute;
-            inset: 0;
+        .btn-decrement:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .btn-increment:hover {
+            border-color: var(--cyan-400);
+            color: var(--cyan-400);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        /* Features Section */
+        .section-header {
+            margin-bottom: 2.25rem;
+            text-align: center;
+        }
+
+        .section-tag {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--cyan-400);
+            margin-bottom: 0.4rem;
+        }
+
+        .section-title {
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .feature-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 1.85rem 1.65rem;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .graphic-stack {
+            flex-direction: column;
+            gap: 0.9rem;
+            transition: var(--transition-smooth);
             position: relative;
-            width: 100%;
-            height: 100%;
+        }
+
+        .feature-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+        }
+
+        .feature-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .version-text {
-            font-size: 11.5rem;
-            font-weight: 900;
-            line-height: 0.85;
-            font-family: 'Instrument Sans', sans-serif;
-            position: absolute;
-            left: 50%;
-            top: 55%;
-            letter-spacing: -0.06em;
-            white-space: nowrap;
+        .feature-tag {
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            color: var(--cyan-400);
+            padding: 0.2rem 0.55rem;
+            border-radius: var(--radius-sm);
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.2);
         }
 
-        .v-layer-1 {
-            color: transparent;
-            -webkit-text-stroke: 2.5px rgba(6, 182, 212, 0.55);
-            transform: translate(calc(-50% - 32px), calc(-50% - 32px));
+        .feature-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
         }
 
-        .v-layer-2 {
-            color: transparent;
-            -webkit-text-stroke: 2px rgba(139, 92, 246, 0.4);
-            transform: translate(calc(-50% - 20px), calc(-50% - 20px));
+        .feature-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.55;
         }
 
-        .v-layer-3 {
-            color: transparent;
-            -webkit-text-stroke: 1.5px rgba(6, 182, 212, 0.25);
-            transform: translate(calc(-50% - 10px), calc(-50% - 10px));
-        }
-
-        .v-layer-main {
-            color: #0b1320;
-            transform: translate(-50%, -50%);
-            text-shadow: 0 0 50px rgba(6, 182, 212, 0.2);
-        }
-
-        /* Responsive Layout */
-        @media (max-width: 768px) {
-            .container {
+        /* Responsive Breakpoints */
+        @media (max-width: 900px) {
+            .showcase-grid {
                 grid-template-columns: 1fr;
             }
-            .right-panel {
-                min-height: 280px;
-                border-left: none;
-                border-top: 1px solid var(--card-border);
-                padding: 2rem;
+        }
+
+        @media (max-width: 640px) {
+            .hero {
+                padding: 2rem 0.5rem 2.5rem;
             }
-            .left-panel {
-                padding: 2.5rem 1.75rem;
+
+            .hero-cta {
+                flex-direction: column;
+                width: 100%;
             }
-            .graphic-brand {
-                font-size: 4rem;
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                justify-content: center;
             }
-            .version-text {
-                font-size: 8.5rem;
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .counter-card {
+                padding: 1.75rem 1.25rem;
             }
         }
     </style>
-</head>
-<body>
 
-    <!-- Main Card Container -->
-    <div class="container">
-        
-        <!-- Left Column: Navigation & Starter Steps -->
-        <div class="left-panel">
-            <div>
-                <div class="heading-group">
-                    <h2>Let's get started</h2>
-                    <p>With so many options available to you, we suggest you start with the following:</p>
-                </div>
-
-                <!-- Step Checklist -->
-                <div class="checklist">
-                    <a href="https://github.com/celionatti/switch" target="_blank" class="check-item">
-                        <div class="check-circle"></div>
-                        <span>Read the <span class="link-text">Documentation</span> <span class="arrow-icon">↗</span></span>
-                    </a>
-
-                    <a href="/api/status" class="check-item">
-                        <div class="check-circle"></div>
-                        <span>Explore the <span class="link-text">API Endpoints</span> <span class="arrow-icon">↗</span></span>
-                    </a>
-
-                    <a href="https://github.com/celionatti/switch-console" target="_blank" class="check-item">
-                        <div class="check-circle"></div>
-                        <span>Run CLI &amp; REPL via <span class="link-text">Switch Tinker</span> <span class="arrow-icon">↗</span></span>
-                    </a>
-                </div>
-
-                <!-- Deploy Button -->
-                <div class="action-area">
-                    <a href="https://github.com/celionatti/switch" target="_blank" class="btn-deploy">Deploy now</a>
+    <!-- Hero Section -->
+    <div class="hero">
+        <if cond="$version">
+            <div class="hero-badge-wrap">
+                <div class="hero-pill">
+                    <span class="pulse-dot"></span>
+                    <span>Switch Framework v{{ $version }} Ready</span>
                 </div>
             </div>
+        </if>
 
-            <!-- Footer Changelog -->
-            <div class="changelog-footer">
-                <span>v1.0.0</span>
-                <a href="https://github.com/celionatti/switch" target="_blank">View changelog ↗</a>
-            </div>
+        <h1 class="hero-title">
+            The High-Velocity <br />
+            <span class="gradient-text">Full-Stack PHP Framework</span>
+        </h1>
+
+        <p class="hero-description">
+            Zero-overhead modular architecture, compiled blade-speed view engine, and native zero-JS SPA reactivity. Built for modern web applications that demand extreme speed.
+        </p>
+
+        <div class="hero-cta">
+            <a href="https://github.com/celionatti/switch" target="_blank" rel="noopener noreferrer" class="btn-primary">
+                <span>Explore Documentation</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
+            <a href="https://github.com/celionatti/switch-live" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+                <span>View Switch Live</span>
+            </a>
         </div>
-
-        <!-- Right Column: Abstract Typography Graphic -->
-        <div class="right-panel">
-            <div class="graphic-brand">Switch</div>
-
-            <!-- Centered Multi-Layered 3D Version Graphic -->
-            <div class="graphic-container">
-                <div class="graphic-stack">
-                    <div class="version-text v-layer-1">1.0</div>
-                    <div class="version-text v-layer-2">1.0</div>
-                    <div class="version-text v-layer-3">1.0</div>
-                    <div class="version-text v-layer-main">1.0</div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-</body>
-</html>
+    <!-- Interactive Showcase Grid -->
+    <div class="showcase-grid">
+        <!-- Quickstart Commands -->
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <span class="terminal-title">switch-cli ~ quickstart</span>
+            </div>
+            <div class="terminal-body">
+                <foreach items="$quickstart" as="$step">
+                    <div class="terminal-step">
+                        <span class="step-label">{{ $step.step }}. {{ $step.label }}</span>
+                        <div class="step-cmd">
+                            <span><span class="prompt-symbol">$</span>{{ $step.command }}</span>
+                        </div>
+                    </div>
+                </foreach>
+            </div>
+        </div>
+
+        <!-- Live Reactive Counter Demo -->
+        <include file="partials.counter-demo" />
+    </div>
+
+    <!-- Core Architecture Section -->
+    <div class="section-header">
+        <div class="section-tag">Ecosystem</div>
+        <h2 class="section-title">Engineered For Pure Performance</h2>
+    </div>
+
+    <div class="features-grid">
+        <foreach items="$features" as="$feature">
+            <div class="feature-card">
+                <div class="feature-top">
+                    <div class="feature-icon">{{ $feature.icon }}</div>
+                    <span class="feature-tag">{{ $feature.tag }}</span>
+                </div>
+                <h3 class="feature-title">{{ $feature.title }}</h3>
+                <p class="feature-desc">{{ $feature.desc }}</p>
+            </div>
+        </foreach>
+    </div>
+</section>
