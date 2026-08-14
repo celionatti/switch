@@ -1,3 +1,4 @@
+<php> $phpVersion = $phpVersion ?? PHP_VERSION; </php>
 <footer class="switch-footer">
     <div class="footer-inner">
         <div class="footer-left">
