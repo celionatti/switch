@@ -32,7 +32,8 @@
         "switch/database": "*",
         "switch/error-handler": "*",
         "switch/console": "*",
-        "switch/head": "*"
+        "switch/head": "*",
+        "switch/live": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5 || ^11.0"
@@ -50,6 +51,7 @@
             "Switch\\ErrorHandler\\": "packages/error-handler/src/",
             "Switch\\Console\\": "packages/console/src/",
             "Switch\\Head\\": "packages/head/src/",
+            "Switch\\Live\\": "packages/live/src/",
             "App\\": "sandbox/src/",
             "Switch\\Tests\\Integration\\": "tests/Integration/"
         }
