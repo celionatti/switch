@@ -29,7 +29,8 @@
         "switch/error-handler": "^1.0",
         "switch/console": "^1.0",
         "switch/head": "^1.0",
-        "switch/live": "^1.0"
+        "switch/live": "^1.0",
+        "switch/controller": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5 || ^11.0"
