@@ -35,7 +35,8 @@
         "switch/head": "*",
         "switch/live": "*",
         "switch/controller": "*",
-        "switch/session": "*"
+        "switch/session": "*",
+        "switch/foundation": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5 || ^11.0"
@@ -56,6 +57,7 @@
             "Switch\\Live\\": "packages/live/src/",
             "Switch\\Controller\\": "packages/controller/src/",
             "Switch\\Session\\": "packages/session/src/",
+            "Switch\\Foundation\\": "packages/foundation/src/",
             "App\\": "sandbox/src/",
             "Switch\\Tests\\Integration\\": "tests/Integration/"
         },
@@ -63,7 +65,8 @@
             "packages/head/src/helpers.php",
             "packages/live/src/helpers.php",
             "packages/controller/src/helpers.php",
-            "packages/session/src/helpers.php"
+            "packages/session/src/helpers.php",
+            "packages/foundation/src/helpers.php"
         ]
     },
     "scripts": {
