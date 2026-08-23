@@ -59,7 +59,10 @@
             "Switch\\Controller\\": "packages/controller/src/",
             "Switch\\Session\\": "packages/session/src/",
             "Switch\\Foundation\\": "packages/foundation/src/",
-            "App\\": "sandbox/src/",
+            "App\\": [
+                "skeleton/app/",
+                "sandbox/src/"
+            ],
             "Switch\\Tests\\Integration\\": "tests/Integration/"
         },
         "files": [
