@@ -104,4 +104,67 @@ class UploadedFile implements UploadedFileInterface
     {
         return $this->clientMediaType;
     }
+
+    public function isValid(): bool
+    {
+        return $this->error === UPLOAD_ERR_OK;
+    }
+
+    public function extension(): string
+    {
+        if ($this->clientFilename) {
+            $ext = strtolower(pathinfo($this->clientFilename, PATHINFO_EXTENSION));
+            if ($ext !== '') {
+                return $ext;
+            }
+        }
+
+        return match ($this->clientMediaType) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            'image/svg+xml' => 'svg',
+            'application/pdf' => 'pdf',
+            'application/json' => 'json',
+            'text/plain' => 'txt',
+            default => 'bin',
+        };
+    }
+
+    public function store(string $path = '', string $disk = 'public'): string|false
+    {
+        if (class_exists(\Switch\Foundation\Storage\Facade\Storage::class)) {
+            return \Switch\Foundation\Storage\Facade\Storage::disk($disk)->putFile($path, $this);
+        }
+
+        $filename = uniqid('file_', true) . '.' . $this->extension();
+        return $this->storeAs($path, $filename, $disk);
+    }
+
+    public function storeAs(string $path, string $name, string $disk = 'public'): string|false
+    {
+        if (class_exists(\Switch\Foundation\Storage\Facade\Storage::class)) {
+            return \Switch\Foundation\Storage\Facade\Storage::disk($disk)->putFileAs($path, $this, $name);
+        }
+
+        $targetDir = rtrim($path, '/\\');
+        $target = ($targetDir !== '' ? $targetDir . '/' : '') . ltrim($name, '/\\');
+
+        try {
+            $this->moveTo($target);
+            return $target;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    public function image(): mixed
+    {
+        if (class_exists(\Switch\Foundation\Image\Image::class)) {
+            return \Switch\Foundation\Image\Image::fromUploadedFile($this);
+        }
+
+        throw new RuntimeException("Switch Foundation Image package is required to use ->image().");
+    }
 }

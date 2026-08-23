@@ -86,6 +86,17 @@ class ServerRequest extends Request implements ServerRequestInterface
         return $this->uploadedFiles;
     }
 
+    public function file(string $name): ?\Psr\Http\Message\UploadedFileInterface
+    {
+        return $this->uploadedFiles[$name] ?? null;
+    }
+
+    public function hasFile(string $name): bool
+    {
+        $file = $this->file($name);
+        return $file instanceof \Psr\Http\Message\UploadedFileInterface && $file->getError() === UPLOAD_ERR_OK;
+    }
+
     public function withUploadedFiles(array $uploadedFiles): ServerRequestInterface
     {
         $new = clone $this;
