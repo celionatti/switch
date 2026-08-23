@@ -14,8 +14,10 @@ declare(strict_types=1);
 
 define('SWITCH_START', microtime(true));
 
-// Autoload Dependencies
-require_once __DIR__ . '/vendor/autoload.php';
+// Autoload Dependencies (standalone project or monorepo dev)
+require_once file_exists(__DIR__ . '/vendor/autoload.php')
+    ? __DIR__ . '/vendor/autoload.php'
+    : __DIR__ . '/../vendor/autoload.php';
 
 // Bootstrap Switch Application
 $appKernel = require_once __DIR__ . '/bootstrap/app.php';
