@@ -47,6 +47,11 @@ class View
         return SecurityHelper::csrfField();
     }
 
+    public static function methodField(string $method): string
+    {
+        return SecurityHelper::methodField($method);
+    }
+
     public static function honeypot(string $name = 'my_name_hp', string $timeName = 'my_time_hp'): string
     {
         return SecurityHelper::honeypot($name, $timeName);

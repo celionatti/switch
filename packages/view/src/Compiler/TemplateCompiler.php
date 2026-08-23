@@ -5,28 +5,24 @@ declare(strict_types=1);
 namespace Switch\View\Compiler;
 
 use Switch\View\Component\ComponentRegistry;
+use Switch\View\Security\SecurityHelper;
 
 class TemplateCompiler
 {
+    /**
+     * Compile template source string into executable PHP code.
+     */
     public function compile(string $contents): string
     {
         // 1. Comments {{-- comment --}}
         $contents = preg_replace('/\{\{--(.*?)--\}\}/s', '<?php /*$1*/ ?>', $contents) ?? $contents;
 
-        // 2. Custom Raw PHP blocks <php>...</php>
+        // 2. Raw PHP Blocks <php>...</php> and @php...@endphp
         $contents = preg_replace('/<php>(.*?)<\/php>/s', '<?php $1 ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@php\b(.*?)@endphp/s', '<?php $1 ?>', $contents) ?? $contents;
 
-        // 3. Security & Framework Directives: @csrf, @honeypot, @nonce, @liveScripts, @flash
-        $contents = preg_replace('/@csrf\b/i', '<?= \Switch\View\Security\SecurityHelper::csrfField(); ?>', $contents) ?? $contents;
-        $contents = preg_replace('/@honeypot\b/i', '<?= \Switch\View\Security\SecurityHelper::honeypot(); ?>', $contents) ?? $contents;
-        $contents = preg_replace('/@nonce\b/i', 'nonce="<?= \Switch\View\Security\SecurityHelper::getCspNonce(); ?>"', $contents) ?? $contents;
-        $contents = preg_replace('/@liveScripts\b/i', '<?= function_exists(\'live_scripts\') ? live_scripts() : \'\'; ?>', $contents) ?? $contents;
-        $contents = preg_replace('/@flash\b/i', '<?= function_exists(\'flash_render\') ? flash_render() : \'\'; ?>', $contents) ?? $contents;
-        $contents = preg_replace_callback('/<flash(?:\s+mode=[\'"]([^\'"]+)[\'"])?(?:\s+position=[\'"]([^\'"]+)[\'"])?\s*\/?>/i', function ($m) {
-            $mode = !empty($m[1]) ? '\'' . $m[1] . '\'' : '\'toast\'';
-            $pos = !empty($m[2]) ? '\'' . $m[2] . '\'' : '\'bottom-right\'';
-            return '<?= function_exists(\'flash_render\') ? flash_render(' . $mode . ', [\'position\' => ' . $pos . ']) : \'\'; ?>';
-        }, $contents) ?? $contents;
+        // 3. Security, Framework Tags & @ Directives (CSRF, Method, Honeypot, Nonce, Live, Notifications, Head, Flash, Old, Errors, Session, JSON)
+        $contents = $this->compileFrameworkTagsAndDirectives($contents);
 
         // 4. Raw Interpolation {!! $expr !!}
         $contents = preg_replace_callback('/\{\!\!\s*(.*?)\s*\!\!\}/s', function ($m) {
@@ -40,85 +36,396 @@ class TemplateCompiler
             return "<?= htmlspecialchars((string) ({$expr}), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>";
         }, $contents) ?? $contents;
 
-        // 6. Component Tags: <x-name ...>...</x-name> and self-closing <x-name ... />
+        // 6. Components: <x-name ...>...</x-name> and self-closing <x-name ... />
         $contents = $this->compileComponentTags($contents);
 
-        // 7. Partials: <partial name="partials.header" ... /> and <include file="partials.header" ... />
-        $contents = preg_replace_callback('/<(?:include|partial)\s+(?:file|name)=[\'"]([^\'"]+)[\'"](?:\s+(?:data|with)=[\'"]([^\'"]*)[\'"])?\s*\/?>/i', function ($m) {
+        // 7. Layouts, Extends, Sections, Yield, Partials & Includes
+        $contents = $this->compileLayoutsAndPartials($contents);
+
+        // 8. Control Structures (Auth, Guest, Can, Env, If, Unless, Isset, Empty, Loops, Switch)
+        $contents = $this->compileControlStructures($contents);
+
+        return $contents;
+    }
+
+    /**
+     * Compile security helpers, framework tools, and their HTML tag equivalents.
+     */
+    private function compileFrameworkTagsAndDirectives(string $contents): string
+    {
+        // CSRF: @csrf  <==>  <csrf /> or <csrf></csrf> or <s-csrf />
+        $contents = preg_replace('/<(?:s-)?csrf(?:\s*\/|\s*>\s*<\/(?:s-)?csrf)?>/i', '<?= \Switch\View\Security\SecurityHelper::csrfField(); ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@csrf\b/i', '<?= \Switch\View\Security\SecurityHelper::csrfField(); ?>', $contents) ?? $contents;
+
+        // HTTP Method Spoofing: @method('PUT')  <==>  <method value="PUT" /> or <s-method value="PUT" />
+        $contents = preg_replace_callback('/<(?:s-)?method\s+(?:value|type|name|method)=[\'"]([^\'"]+)[\'"]\s*\/?>/i', function ($m) {
+            return '<?= \Switch\View\Security\SecurityHelper::methodField(\'' . addslashes($m[1]) . '\'); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@method\s*\(\s*[\'"]([^\'"]+)[\'"]\s*\)/i', function ($m) {
+            return '<?= \Switch\View\Security\SecurityHelper::methodField(\'' . addslashes($m[1]) . '\'); ?>';
+        }, $contents) ?? $contents;
+
+        // Honeypot: @honeypot('name', 'time')  <==>  <honeypot name="..." time="..." /> or <s-honeypot />
+        $contents = preg_replace_callback('/<(?:s-)?honeypot(?:\s+name=[\'"]([^\'"]+)[\'"])?(?:\s+time=[\'"]([^\'"]+)[\'"])?\s*\/?>/i', function ($m) {
+            $name = !empty($m[1]) ? '\'' . addslashes($m[1]) . '\'' : '\'my_name_hp\'';
+            $time = !empty($m[2]) ? '\'' . addslashes($m[2]) . '\'' : '\'my_time_hp\'';
+            return '<?= \Switch\View\Security\SecurityHelper::honeypot(' . $name . ', ' . $time . '); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@honeypot(?:\s*\(\s*(?:[\'"]([^\'"]+)[\'"])?(?:,\s*[\'"]([^\'"]+)[\'"])?\s*\))?/i', function ($m) {
+            $name = !empty($m[1]) ? '\'' . addslashes($m[1]) . '\'' : '\'my_name_hp\'';
+            $time = !empty($m[2]) ? '\'' . addslashes($m[2]) . '\'' : '\'my_time_hp\'';
+            return '<?= \Switch\View\Security\SecurityHelper::honeypot(' . $name . ', ' . $time . '); ?>';
+        }, $contents) ?? $contents;
+
+        // CSP Nonce: @nonce  <==>  <nonce /> or <s-nonce />
+        $contents = preg_replace('/<(?:s-)?nonce\s*\/?>/i', 'nonce="<?= \Switch\View\Security\SecurityHelper::getCspNonce(); ?>"', $contents) ?? $contents;
+        $contents = preg_replace('/@nonce\b/i', 'nonce="<?= \Switch\View\Security\SecurityHelper::getCspNonce(); ?>"', $contents) ?? $contents;
+
+        // Live Scripts (SPA & reactivity): @liveScripts  <==>  <live-scripts /> or <liveScripts /> or <s-live-scripts />
+        $contents = preg_replace('/<(?:s-)?(?:live-scripts|liveScripts|livescripts)\s*\/?>/i', '<?= function_exists(\'live_scripts\') ? live_scripts() : \'\'; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@(?:liveScripts|live_scripts|livescripts)\b/i', '<?= function_exists(\'live_scripts\') ? live_scripts() : \'\'; ?>', $contents) ?? $contents;
+
+        // Notification Stream: @notificationStream  <==>  <notification-stream /> or <notifications /> or <s-notification-stream />
+        $contents = preg_replace('/<(?:s-)?(?:notification-stream|notificationStream|notifications)\s*\/?>/i', '<?= function_exists(\'notification_stream\') ? notification_stream() : \'\'; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@(?:notificationStream|notification_stream|notifications)\b/i', '<?= function_exists(\'notification_stream\') ? notification_stream() : \'\'; ?>', $contents) ?? $contents;
+
+        // Head Meta / SEO: @head  <==>  <head-meta /> or <head-tags /> or <s-head />
+        $contents = preg_replace('/<(?:s-)?(?:head-meta|head-tags|head:tags|head)\s*\/?>/i', '<?= function_exists(\'head\') ? head()->render() : \'\'; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@head\b/i', '<?= function_exists(\'head\') ? head()->render() : \'\'; ?>', $contents) ?? $contents;
+
+        // Flash Messages: @flash('toast')  <==>  <flash mode="toast" position="bottom-right" /> or <s-flash />
+        $contents = preg_replace_callback('/<(?:s-)?flash(?:\s+mode=[\'"]([^\'"]+)[\'"])?(?:\s+position=[\'"]([^\'"]+)[\'"])?\s*\/?>/i', function ($m) {
+            if (empty($m[1]) && empty($m[2])) {
+                return '<?= function_exists(\'flash_render\') ? flash_render() : \'\'; ?>';
+            }
+            $mode = !empty($m[1]) ? '\'' . $m[1] . '\'' : '\'toast\'';
+            $pos = !empty($m[2]) ? '\'' . $m[2] . '\'' : '\'bottom-right\'';
+            return '<?= function_exists(\'flash_render\') ? flash_render(' . $mode . ', [\'position\' => ' . $pos . ']) : \'\'; ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@flash(?:\s*\(\s*(?:[\'"]([^\'"]+)[\'"])?(?:\s*,\s*(.*?))?\s*\))?/i', function ($m) {
+            if (empty($m[1])) {
+                return '<?= function_exists(\'flash_render\') ? flash_render() : \'\'; ?>';
+            }
+            $mode = '\'' . $m[1] . '\'';
+            $opts = !empty($m[2]) ? ', ' . $this->compileDotSyntax($m[2]) : '';
+            return '<?= function_exists(\'flash_render\') ? flash_render(' . $mode . $opts . ') : \'\'; ?>';
+        }, $contents) ?? $contents;
+
+        // Form Old Value: @old('email', 'default')  <==>  <old name="email" default="default" /> or <s-old name="email" />
+        $contents = preg_replace_callback('/<(?:s-)?old\s+(?:name|field)=[\'"]([^\'"]+)[\'"](?:\s+default=[\'"]([^\'"]*)[\'"])?\s*\/?>/i', function ($m) {
+            $default = isset($m[2]) ? '\'' . addslashes($m[2]) . '\'' : '\'\'';
+            return '<?= function_exists(\'old\') ? old(\'' . addslashes($m[1]) . '\', ' . $default . ') : ' . $default . '; ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@old\s*\(\s*[\'"]([^\'"]+)[\'"](?:\s*,\s*(.*?))?\s*\)/i', function ($m) {
+            $default = !empty($m[2]) ? $this->compileDotSyntax($m[2]) : '\'\'';
+            return '<?= function_exists(\'old\') ? old(\'' . addslashes($m[1]) . '\', ' . $default . ') : ' . $default . '; ?>';
+        }, $contents) ?? $contents;
+
+        // JSON Output: @json($data)  <==>  <json data="$data" /> or <json :data="$data" /> or <s-json />
+        $contents = preg_replace_callback('/<(?:s-)?json\s+(?::data|data)=[\'"]([^\'"]+)[\'"]\s*\/?>/i', function ($m) {
+            $expr = $this->compileDotSyntax($m[1]);
+            return '<?= \\Switch\\View\\Security\\SecurityHelper::safeJson(' . $expr . '); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@json\s*\((.*?)\)/s', function ($m) {
+            $expr = $this->compileDotSyntax($m[1]);
+            return '<?= \\Switch\\View\\Security\\SecurityHelper::safeJson(' . $expr . '); ?>';
+        }, $contents) ?? $contents;
+
+        return $contents;
+    }
+
+    /**
+     * Compile layout inheritance, section captures, yields, and view includes/partials.
+     */
+    private function compileLayoutsAndPartials(string $contents): string
+    {
+        // Layout Extension: @extends('layouts.app') / @layout('layouts.app')  <==>  <layout name="layouts.app" /> or <extends name="layouts.app" />
+        $contents = preg_replace_callback('/<(?:s-)?(?:layout|extends)\s+(?:name|layout|file)=[\'"]([^\'"]+)[\'"]\s*\/?>/i', function ($m) {
+            return '<?php $this->extend(\'' . $m[1] . '\'); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@(?:extends|layout)\s*\(\s*[\'"]([^\'"]+)[\'"]\s*\)/i', function ($m) {
+            return '<?php $this->extend(\'' . $m[1] . '\'); ?>';
+        }, $contents) ?? $contents;
+
+        // Section Start: @section('content')  <==>  <section name="content"> or <s-section name="content">
+        $contents = preg_replace_callback('/<(?:s-)?section\s+name=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            return '<?php $this->startSection(\'' . $m[1] . '\'); ?>';
+        }, $contents) ?? $contents;
+
+        // Inline Section: @section('title', 'My Title')
+        $contents = preg_replace_callback('/@section\s*\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*[\'"]([^\'"]*)[\'"]\s*\)/i', function ($m) {
+            return '<?php $this->startSection(\'' . $m[1] . '\'); echo \'' . addslashes($m[2]) . '\'; $this->endSection(); ?>';
+        }, $contents) ?? $contents;
+
+        $contents = preg_replace_callback('/@section\s*\(\s*[\'"]([^\'"]+)[\'"]\s*\)/i', function ($m) {
+            return '<?php $this->startSection(\'' . $m[1] . '\'); ?>';
+        }, $contents) ?? $contents;
+
+        // Section End: </section> or </s-section> or @endsection or @stop
+        $contents = preg_replace('/<\/(?:s-)?section>/i', '<?php $this->endSection(); ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@(endsection|stop)\b/i', '<?php $this->endSection(); ?>', $contents) ?? $contents;
+
+        // Yield Section: @yield('content', 'Default')  <==>  <yield name="content" default="Default" /> or <s-yield ... />
+        $contents = preg_replace_callback('/<(?:s-)?yield\s+name=[\'"]([^\'"]+)[\'"](?:\s+default=[\'"]([^\'"]*)[\'"])?\s*\/?>/i', function ($m) {
+            $name = $m[1];
+            $default = isset($m[2]) ? '\'' . addslashes($m[2]) . '\'' : '\'\'';
+            return '<?= $this->yieldSection(\'' . $name . '\', ' . $default . '); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@yield\s*\(\s*[\'"]([^\'"]+)[\'"](?:\s*,\s*(?:[\'"]([^\'"]*)[\'"]|(.*?)))?\s*\)/i', function ($m) {
+            $name = $m[1];
+            $default = isset($m[2]) && $m[2] !== ''
+                ? '\'' . addslashes($m[2]) . '\''
+                : (!empty($m[3]) ? $this->compileDotSyntax($m[3]) : '\'\'');
+            return '<?= $this->yieldSection(\'' . $name . '\', ' . $default . '); ?>';
+        }, $contents) ?? $contents;
+
+        // Partials / Includes: @include('partials.header', $data)  <==>  <include file="partials.header" /> or <partial name="partials.header" />
+        $contents = preg_replace_callback('/<(?:s-)?(?:include|partial)\s+(?:file|name)=[\'"]([^\'"]+)[\'"](?:\s+(?:data|with)=[\'"]([^\'"]*)[\'"])?\s*\/?>/i', function ($m) {
+            $file = $m[1];
+            $data = !empty($m[2]) ? 'array_merge($__data, ' . $this->compileDotSyntax($m[2]) . ')' : '$__data';
+            return '<?= $this->render(\'' . $file . '\', ' . $data . '); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@(?:include|partial)\s*\(\s*[\'"]([^\'"]+)[\'"](?:\s*,\s*(.*?))?\s*\)/i', function ($m) {
             $file = $m[1];
             $data = !empty($m[2]) ? 'array_merge($__data, ' . $this->compileDotSyntax($m[2]) . ')' : '$__data';
             return '<?= $this->render(\'' . $file . '\', ' . $data . '); ?>';
         }, $contents) ?? $contents;
 
-        // 8. Layout Extension: <layout name="layouts.app" /> or <extends name="layouts.app" />
-        $contents = preg_replace_callback('/<(?:layout|extends)\s+(?:name|layout|file)=[\'"]([^\'"]+)[\'"]\s*\/?>/i', function ($m) {
-            return '<?php $this->extend(\'' . $m[1] . '\'); ?>';
+        return $contents;
+    }
+
+    /**
+     * Compile control structures (Auth, Gate, Form Error, Session, If, Unless, Loops).
+     */
+    private function compileControlStructures(string $contents): string
+    {
+        // 1. Auth & Guest: @auth / @guest  <==>  <auth>...</auth> / <guest>...</guest>
+        $contents = preg_replace('/<(?:s-)?auth>/i', '<?php if (function_exists(\'auth\') && auth()->check()): ?>', $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?auth>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@auth\b/i', '<?php if (function_exists(\'auth\') && auth()->check()): ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endauth\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        $contents = preg_replace('/<(?:s-)?guest>/i', '<?php if (!function_exists(\'auth\') || !auth()->check()): ?>', $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?guest>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@guest\b/i', '<?php if (!function_exists(\'auth\') || !auth()->check()): ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endguest\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        // 2. Gate Authorization: @can('edit', $post) / @cannot  <==>  <can ability="edit" :args="[$post]">...</can>
+        $contents = preg_replace_callback('/<(?:s-)?can\s+(?:ability|do)=[\'"]([^\'"]+)[\'"](?:\s+:args=[\'"]([^\'"]+)[\'"])?\s*>/i', function ($m) {
+            $ability = '\'' . addslashes($m[1]) . '\'';
+            $args = !empty($m[2]) ? '...' . $this->compileDotSyntax($m[2]) : '';
+            return '<?php if (function_exists(\'gate\') && gate()->allows(' . $ability . ($args !== '' ? ', ' . $args : '') . ')): ?>';
         }, $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?can>/i', '<?php endif; ?>', $contents) ?? $contents;
 
-        // 9. Section Start: <section name="content">
-        $contents = preg_replace_callback('/<section\s+name=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
-            return '<?php $this->startSection(\'' . $m[1] . '\'); ?>';
+        $contents = preg_replace_callback('/@can\s*\(\s*[\'"]([^\'"]+)[\'"](?:\s*,\s*(.*?))?\s*\)/i', function ($m) {
+            $ability = '\'' . addslashes($m[1]) . '\'';
+            $args = !empty($m[2]) ? ', ' . $this->compileDotSyntax($m[2]) : '';
+            return '<?php if (function_exists(\'gate\') && gate()->allows(' . $ability . $args . ')): ?>';
         }, $contents) ?? $contents;
+        $contents = preg_replace('/@endcan\b/i', '<?php endif; ?>', $contents) ?? $contents;
 
-        // Section End: </section>
-        $contents = preg_replace('/<\/section>/i', '<?php $this->endSection(); ?>', $contents) ?? $contents;
-
-        // 10. Yield Section: <yield name="content" default="Default Content" />
-        $contents = preg_replace_callback('/<yield\s+name=[\'"]([^\'"]+)[\'"](?:\s+default=[\'"]([^\'"]*)[\'"])?\s*\/?>/i', function ($m) {
-            $name = $m[1];
-            $default = isset($m[2]) ? '\'' . addslashes($m[2]) . '\'' : '\'\'';
-            return '<?= $this->yieldSection(\'' . $name . '\', ' . $default . '); ?>';
+        $contents = preg_replace_callback('/<(?:s-)?cannot\s+(?:ability|do)=[\'"]([^\'"]+)[\'"](?:\s+:args=[\'"]([^\'"]+)[\'"])?\s*>/i', function ($m) {
+            $ability = '\'' . addslashes($m[1]) . '\'';
+            $args = !empty($m[2]) ? '...' . $this->compileDotSyntax($m[2]) : '';
+            return '<?php if (!function_exists(\'gate\') || !gate()->allows(' . $ability . ($args !== '' ? ', ' . $args : '') . ')): ?>';
         }, $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?cannot>/i', '<?php endif; ?>', $contents) ?? $contents;
 
-        // 11. If / Elseif / Else / Endif
-        $contents = preg_replace_callback('/<if\s+cond=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+        $contents = preg_replace_callback('/@cannot\s*\(\s*[\'"]([^\'"]+)[\'"](?:\s*,\s*(.*?))?\s*\)/i', function ($m) {
+            $ability = '\'' . addslashes($m[1]) . '\'';
+            $args = !empty($m[2]) ? ', ' . $this->compileDotSyntax($m[2]) : '';
+            return '<?php if (!function_exists(\'gate\') || !gate()->allows(' . $ability . $args . ')): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace('/@endcannot\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        // 3. Validation Error: @error('email')  <==>  <error field="email">...</error>
+        $contents = preg_replace_callback('/<(?:s-)?error\s+(?:field|name)=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            $field = '\'' . addslashes($m[1]) . '\'';
+            return '<?php if (function_exists(\'errors\') && errors()->has(' . $field . ')): $message = errors()->first(' . $field . '); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?error>/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        $contents = preg_replace_callback('/@error\s*\(\s*[\'"]([^\'"]+)[\'"]\s*\)/i', function ($m) {
+            $field = '\'' . addslashes($m[1]) . '\'';
+            return '<?php if (function_exists(\'errors\') && errors()->has(' . $field . ')): $message = errors()->first(' . $field . '); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace('/@enderror\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        // 4. Session Value Block: @session('status')  <==>  <session key="status">...</session>
+        $contents = preg_replace_callback('/<(?:s-)?session\s+(?:key|name)=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            $key = '\'' . addslashes($m[1]) . '\'';
+            return '<?php if (function_exists(\'session\') && session()->has(' . $key . ')): $value = session()->get(' . $key . '); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?session>/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        $contents = preg_replace_callback('/@session\s*\(\s*[\'"]([^\'"]+)[\'"]\s*\)/i', function ($m) {
+            $key = '\'' . addslashes($m[1]) . '\'';
+            return '<?php if (function_exists(\'session\') && session()->has(' . $key . ')): $value = session()->get(' . $key . '); ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace('/@endsession\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        // 5. Environment & Production: @env('prod') / @production  <==>  <env name="prod">...</env> / <production>...</production>
+        $contents = preg_replace_callback('/<(?:s-)?env\s+name=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            return '<?php if (function_exists(\'app\') && app()->isEnv(\'' . addslashes($m[1]) . '\')): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?env>/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        $contents = preg_replace_callback('/@env\s*\(\s*[\'"]([^\'"]+)[\'"]\s*\)/i', function ($m) {
+            return '<?php if (function_exists(\'app\') && app()->isEnv(\'' . addslashes($m[1]) . '\')): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace('/@endenv\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        $contents = preg_replace('/<(?:s-)?production>/i', '<?php if (function_exists(\'app\') && app()->isProduction()): ?>', $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?production>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@production\b/i', '<?php if (function_exists(\'app\') && app()->isProduction()): ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endproduction\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        // 6. Conditionals: If / Elseif / Else / Endif
+        $contents = preg_replace_callback('/<(?:s-)?if\s+cond=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            $cond = $this->compileDotSyntax($m[1]);
+            return '<?php if (' . $cond . '): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@if\s*\((.*?)\)/s', function ($m) {
             $cond = $this->compileDotSyntax($m[1]);
             return '<?php if (' . $cond . '): ?>';
         }, $contents) ?? $contents;
 
-        $contents = preg_replace_callback('/<elseif\s+cond=[\'"]([^\'"]+)[\'"]\s*\/?>/i', function ($m) {
+        $contents = preg_replace_callback('/<(?:s-)?elseif\s+cond=[\'"]([^\'"]+)[\'"]\s*\/?>/i', function ($m) {
+            $cond = $this->compileDotSyntax($m[1]);
+            return '<?php elseif (' . $cond . '): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@elseif\s*\((.*?)\)/s', function ($m) {
             $cond = $this->compileDotSyntax($m[1]);
             return '<?php elseif (' . $cond . '): ?>';
         }, $contents) ?? $contents;
 
-        $contents = preg_replace('/<else\s*\/?>/i', '<?php else: ?>', $contents) ?? $contents;
-        $contents = preg_replace('/<\/if>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/<(?:s-)?else\s*\/?>/i', '<?php else: ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@else\b/i', '<?php else: ?>', $contents) ?? $contents;
 
-        // 12. Unless / Endunless
-        $contents = preg_replace_callback('/<unless\s+cond=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+        $contents = preg_replace('/<\/(?:s-)?if>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endif\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        // 7. Unless / Endunless
+        $contents = preg_replace_callback('/<(?:s-)?unless\s+cond=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            $cond = $this->compileDotSyntax($m[1]);
+            return '<?php if (!(' . $cond . ')): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@unless\s*\((.*?)\)/s', function ($m) {
             $cond = $this->compileDotSyntax($m[1]);
             return '<?php if (!(' . $cond . ')): ?>';
         }, $contents) ?? $contents;
 
-        $contents = preg_replace('/<\/unless>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?unless>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endunless\b/i', '<?php endif; ?>', $contents) ?? $contents;
 
-        // 13. Foreach / Endforeach
-        $contents = preg_replace_callback('/<foreach\s+items=[\'"]([^\'"]+)[\'"]\s+as=[\ me2="]+[\'"]\s*>/i', function ($m) {
+        // 8. Isset & Empty
+        $contents = preg_replace_callback('/<(?:s-)?isset\s+(?:var|name)=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            $var = $this->compileDotSyntax($m[1]);
+            return '<?php if (isset(' . $var . ')): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@isset\s*\((.*?)\)/s', function ($m) {
+            $var = $this->compileDotSyntax($m[1]);
+            return '<?php if (isset(' . $var . ')): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?isset>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endisset\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        $contents = preg_replace_callback('/<(?:s-)?empty\s+(?:var|name)=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            $var = $this->compileDotSyntax($m[1]);
+            return '<?php if (empty(' . $var . ')): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@empty\s*\((.*?)\)/s', function ($m) {
+            $var = $this->compileDotSyntax($m[1]);
+            return '<?php if (empty(' . $var . ')): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?empty>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endempty\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        // 9. Forelse / Empty / Endforelse
+        $contents = preg_replace_callback('/<(?:s-)?forelse\s+items=[\'"]([^\'"]+)[\'"]\s+as=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            $items = $this->compileDotSyntax($m[1]);
+            return '<?php if (!empty(' . $items . ')): foreach (' . $items . ' as ' . $m[2] . '): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@forelse\s*\(\s*(.*?)\s+as\s+(.*?)\s*\)/s', function ($m) {
+            $items = $this->compileDotSyntax($m[1]);
+            return '<?php if (!empty(' . $items . ')): foreach (' . $items . ' as ' . $m[2] . '): ?>';
+        }, $contents) ?? $contents;
+
+        $contents = preg_replace('/<(?:s-)?empty\s*\/?>/i', '<?php endforeach; else: ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@empty\b/i', '<?php endforeach; else: ?>', $contents) ?? $contents;
+
+        $contents = preg_replace('/<\/(?:s-)?forelse>/i', '<?php endif; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endforelse\b/i', '<?php endif; ?>', $contents) ?? $contents;
+
+        // 10. Foreach / Endforeach
+        $contents = preg_replace_callback('/<(?:s-)?foreach\s+items=[\'"]([^\'"]+)[\'"]\s+as=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            $items = $this->compileDotSyntax($m[1]);
+            return '<?php foreach (' . $items . ' as ' . $m[2] . '): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@foreach\s*\(\s*(.*?)\s+as\s+(.*?)\s*\)/s', function ($m) {
             $items = $this->compileDotSyntax($m[1]);
             return '<?php foreach (' . $items . ' as ' . $m[2] . '): ?>';
         }, $contents) ?? $contents;
 
-        $contents = preg_replace_callback('/<foreach\s+items=[\'"]([^\'"]+)[\'"]\s+as=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
-            $items = $this->compileDotSyntax($m[1]);
-            return '<?php foreach (' . $items . ' as ' . $m[2] . '): ?>';
+        $contents = preg_replace('/<\/(?:s-)?foreach>/i', '<?php endforeach; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endforeach\b/i', '<?php endforeach; ?>', $contents) ?? $contents;
+
+        // 11. For / Endfor
+        $contents = preg_replace_callback('/<(?:s-)?for\s+var=[\'"]([^\'"]+)[\'"]\s+cond=[\'"]([^\'"]+)[\'"]\s+incr=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            return '<?php for (' . $m[1] . '; ' . $m[2] . '; ' . $m[3] . '): ?>';
         }, $contents) ?? $contents;
-
-        $contents = preg_replace('/<\/foreach>/i', '<?php endforeach; ?>', $contents) ?? $contents;
-
-        // 14. For / Endfor
-        $contents = preg_replace_callback('/<for\s+var=[\'"]([^\'"]+)[\'"]\s+cond=[\'"]([^\'"]+)[\'"]\s+incr=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+        $contents = preg_replace_callback('/@for\s*\(\s*(.*?)\s*;\s*(.*?)\s*;\s*(.*?)\s*\)/s', function ($m) {
             return '<?php for (' . $m[1] . '; ' . $m[2] . '; ' . $m[3] . '): ?>';
         }, $contents) ?? $contents;
 
-        $contents = preg_replace('/<\/for>/i', '<?php endfor; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?for>/i', '<?php endfor; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endfor\b/i', '<?php endfor; ?>', $contents) ?? $contents;
 
-        // 15. While / Endwhile
-        $contents = preg_replace_callback('/<while\s+cond=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+        // 12. While / Endwhile
+        $contents = preg_replace_callback('/<(?:s-)?while\s+cond=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+            $cond = $this->compileDotSyntax($m[1]);
+            return '<?php while (' . $cond . '): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@while\s*\((.*?)\)/s', function ($m) {
             $cond = $this->compileDotSyntax($m[1]);
             return '<?php while (' . $cond . '): ?>';
         }, $contents) ?? $contents;
 
-        $contents = preg_replace('/<\/while>/i', '<?php endwhile; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?while>/i', '<?php endwhile; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endwhile\b/i', '<?php endwhile; ?>', $contents) ?? $contents;
+
+        // 13. Switch / Case / Break / Default / Endswitch
+        $contents = preg_replace_callback('/<(?:s-)?switch\s+(?:value|var)=((["\'])(.*?)\2)\s*>/i', function ($m) {
+            $expr = $this->compileDotSyntax($m[3]);
+            return '<?php switch (' . $expr . '): ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@switch\s*\((.*?)\)/s', function ($m) {
+            $expr = $this->compileDotSyntax($m[1]);
+            return '<?php switch (' . $expr . '): ?>';
+        }, $contents) ?? $contents;
+
+        $contents = preg_replace_callback('/<(?:s-)?case\s+value=((["\'])(.*?)\2)\s*>/i', function ($m) {
+            $val = $this->compileDotSyntax($m[3]);
+            return '<?php case ' . $val . ': ?>';
+        }, $contents) ?? $contents;
+        $contents = preg_replace_callback('/@case\s*\((.*?)\)/s', function ($m) {
+            $val = $this->compileDotSyntax($m[1]);
+            return '<?php case ' . $val . ': ?>';
+        }, $contents) ?? $contents;
+
+        $contents = preg_replace('/<\/(?:s-)?case>/i', '', $contents) ?? $contents;
+
+        $contents = preg_replace('/<(?:s-)?break\s*\/?>/i', '<?php break; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@break\b/i', '<?php break; ?>', $contents) ?? $contents;
+
+        $contents = preg_replace('/<(?:s-)?default\s*>/i', '<?php default: ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@default\b/i', '<?php default: ?>', $contents) ?? $contents;
+
+        $contents = preg_replace('/<\/(?:s-)?default>/i', '', $contents) ?? $contents;
+
+        $contents = preg_replace('/<\/(?:s-)?switch>/i', '<?php endswitch; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/@endswitch\b/i', '<?php endswitch; ?>', $contents) ?? $contents;
 
         return $contents;
     }
@@ -238,9 +545,11 @@ class TemplateCompiler
         return [$slotPhp, $slotsPhp];
     }
 
+    /**
+     * Transform dot syntax access: $user.name -> $this->get($user, 'name')
+     */
     private function compileDotSyntax(string $expression): string
     {
-        // Replace $user.name or $user.profile.name with $this->get($user, 'name')
         return preg_replace_callback('/(\$[a-zA-Z_][a-zA-Z0-9_]*)(?:\.([a-zA-Z_][a-zA-Z0-9_]*))+/', function ($matches) {
             $parts = explode('.', ltrim($matches[0], '$'));
             $root = '$' . array_shift($parts);

@@ -1,6 +1,6 @@
 # Switch View (`switch/view`)
 
-> An expressive HTML tag-based template view engine with built-in UI components (`<x-card>`, `<x-button>`, `<x-alert>`, `<x-modal>`, `<x-skeleton>`, `<x-reactive>`), security-by-default (XSS sanitizer, CSRF token, Honeypot bot defense, CSP Nonces), dot-notation property resolution, layout inheritance, and template caching.
+> An expressive HTML tag-based template view engine with built-in UI components (`<x-card>`, `<x-button>`, `<x-alert>`, `<x-modal>`, `<x-skeleton>`, `<x-reactive>`), dual syntax parity (`@directive` & `<tag />`), security-by-default (XSS sanitizer, CSRF token, Honeypot bot defense, CSP Nonces), dot-notation property resolution, layout inheritance, and high-velocity template compilation.
 
 ---
 
@@ -30,6 +30,46 @@ echo View::render('home', [
     'user' => ['name' => 'Alice', 'role' => 'Admin']
 ]);
 ```
+
+---
+
+## ⚡ Directives & HTML Tag Parity Reference
+
+Every directive in Switch View supports both `@directive` and HTML `<tag>` syntax with 100% feature parity:
+
+| Feature / Category | `@directive` Syntax | HTML Tag Directive Syntax | Output / Description |
+|---|---|---|---|
+| **CSRF Field** | `@csrf` | `<csrf />` or `<s-csrf />` | Hidden `_token` input field |
+| **Method Spoofing** | `@method('PUT')` | `<method value="PUT" />` or `<s-method value="PUT" />` | Hidden `_method` input field |
+| **Honeypot Protection** | `@honeypot` | `<honeypot />` or `<s-honeypot />` | Invisible honeypot trap fields |
+| **CSP Nonce** | `<script @nonce>` | `<script <nonce />>` or `<s-nonce />` | Nonce attribute `nonce="..."` |
+| **Live SPA Scripts** | `@liveScripts` | `<live-scripts />` or `<liveScripts />` | Switch Live reactive SPA bundle |
+| **Notification Stream** | `@notificationStream` | `<notification-stream />` or `<notifications />` | Real-time SSE notification client bridge |
+| **Head Meta / SEO** | `@head` | `<head-meta />` or `<head-tags />` | Dynamic SEO title, meta & OpenGraph |
+| **Flash Messages** | `@flash('toast')` | `<flash mode="toast" position="bottom-right" />` | Toast / Alert flash renderer |
+| **Old Input Value** | `@old('email', 'default')` | `<old name="email" default="default" />` | Repopulated form input value |
+| **Form Errors** | `@error('email')...@enderror` | `<error field="email">...</error>` | Validation error container |
+| **Session Messages** | `@session('status')...@endsession` | `<session key="status">...</session>` | Session flash message container |
+| **Safe JSON Output** | `@json($data)` | `<json :data="$data" />` or `<s-json />` | XSS-safe JSON string |
+| **Authentication** | `@auth...@endauth` | `<auth>...</auth>` or `<s-auth>` | Render for authenticated users |
+| **Guest / Anonymous** | `@guest...@endguest` | `<guest>...</guest>` or `<s-guest>` | Render for unauthenticated guests |
+| **Authorization (Can)** | `@can('edit', $post)...@endcan` | `<can ability="edit" :args="[$post]">...</can>` | Policy gate check (allowed) |
+| **Authorization (Cannot)** | `@cannot('edit', $post)...@endcannot` | `<cannot ability="edit" :args="[$post]">...</cannot>` | Policy gate check (denied) |
+| **Environment Check** | `@env('production')...@endenv` | `<env name="production">...</env>` | Conditional by active environment |
+| **Production Check** | `@production...@endproduction` | `<production>...</production>` | Conditional for production mode |
+| **Conditionals (If)** | `@if($c)...@elseif($c)...@else...@endif` | `<if cond="$c">...<elseif cond="$c" />...<else />...</if>` | PHP `if/elseif/else` branching |
+| **Unless** | `@unless($c)...@endunless` | `<unless cond="$c">...</unless>` | Inverted condition (`if (!($c))`) |
+| **Isset & Empty** | `@isset($v)...@endisset` / `@empty($v)...@endempty` | `<isset var="$v">...</isset>` / `<empty var="$v">...</empty>` | PHP `isset()` and `empty()` |
+| **Foreach Loop** | `@foreach($items as $i)...@endforeach` | `<foreach items="$items" as="$i">...</foreach>` | Standard array iteration |
+| **Forelse Loop** | `@forelse($items as $i)...@empty...@endforelse` | `<forelse items="$items" as="$i">...<empty />...</forelse>` | Iteration with fallback if empty |
+| **For Loop** | `@for($i=0; $i<10; $i++)...@endfor` | `<for var="$i=0" cond="$i<10" incr="$i++">...</for>` | Standard counted loop |
+| **While Loop** | `@while($cond)...@endwhile` | `<while cond="$cond">...</while>` | While loop condition |
+| **Switch Statement** | `@switch($v) @case(1)...@break @default...@endswitch` | `<switch value="$v"><case value="1">...</case><break /><default>...</default></switch>` | Switch-case branching |
+| **Layout Extension** | `@extends('layouts.app')` | `<layout name="layouts.app" />` or `<extends name="layouts.app" />` | Inherit parent layout |
+| **Section Capture** | `@section('content')...@endsection` | `<section name="content">...</section>` | Define content section |
+| **Section Yield** | `@yield('content', 'default')` | `<yield name="content" default="default" />` | Render section placeholder |
+| **Include Partial** | `@include('partials.nav', $data)` | `<include file="partials.nav" :data="$data" />` or `<partial name="..." />` | Sub-template rendering |
+| **Raw PHP** | `@php ... @endphp` | `<php>...</php>` | Embedded PHP execution |
 
 ---
 
@@ -97,25 +137,9 @@ Switch View provides expressive Blade-style HTML Tag Components (`<x-component-n
 <x-shimmer width="100%" height="40px" radius="0.5rem" />
 ```
 
-#### Futuristic PHP-Driven Reactive Component (`<x-reactive>`)
-Automatically hydratable micro-state binding:
-```html
-<x-reactive component="counter" :state="['count' => 0]">
-    <button onclick="this.closest('[data-state]').dataset.state...">Increment</button>
-</x-reactive>
-```
-
-#### Safe JSON Script Embedding (`<x-json>`)
-Prevents HTML/Script tag breakout attacks when embedding server data in JS:
-```html
-<x-json var="window.__APP_DATA__" :data="$userProfile" />
-```
-
 ---
 
 ## 🔒 Security by Default
-
-Switch View is designed to be secure out of the box against XSS, CSRF, and bot attacks.
 
 ### 1. Auto-Escaping Interpolation (`{{ $expr }}`)
 All standard interpolations are XSS-escaped by default using `htmlspecialchars(..., ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')`.
@@ -125,28 +149,27 @@ Use `{!! $expr !!}` only when explicitly outputting trusted raw HTML.
 ### 2. CSRF Token Defense
 ```html
 <!-- Tag Directive -->
-@csrf
+<csrf />
 
-<!-- Component Tag -->
-<x-csrf />
+<!-- @ Directive -->
+@csrf
 
 <!-- Generated Output -->
 <input type="hidden" name="_token" value="4f8a9b...">
 ```
 
 ### 3. Honeypot Spam & Bot Protection
-Renders invisible inputs that trap automated spam bots without frustrating human users:
 ```html
-<!-- Directive -->
-@honeypot
+<!-- Tag Directive -->
+<honeypot />
 
-<!-- Component Tag -->
-<x-honeypot name="website_url_hp" />
+<!-- @ Directive -->
+@honeypot
 ```
 
 ### 4. Content Security Policy (CSP) Nonce
 ```html
-<script @nonce>
+<script <nonce />>
     console.log("Inline script with CSP Nonce!");
 </script>
 ```
@@ -179,22 +202,6 @@ Usage in template:
 <x-custom-card title="Welcome">
     This is my custom component body.
 </x-custom-card>
-```
-
----
-
-## 📄 Partials & Layouts
-
-```html
-<!-- Partial Tag -->
-<partial name="partials.header" />
-
-<!-- Layout Extension -->
-<layout name="layouts.app" />
-
-<section name="content">
-    <h1>Page Content</h1>
-</section>
 ```
 
 ---

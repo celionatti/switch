@@ -51,6 +51,14 @@ class SecurityHelper
     }
 
     /**
+     * Generate HTML hidden input field for HTTP method spoofing (PUT, PATCH, DELETE).
+     */
+    public static function methodField(string $method): string
+    {
+        return '<input type="hidden" name="_method" value="' . htmlspecialchars(strtoupper($method), ENT_QUOTES, 'UTF-8') . '">';
+    }
+
+    /**
      * Generate Honeypot hidden fields for bot/brute force protection.
      */
     public static function honeypot(string $name = 'my_name_hp', string $timeName = 'my_time_hp'): string
