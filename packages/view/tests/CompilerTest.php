@@ -246,4 +246,27 @@ class CompilerTest extends TestCase
 
         $this->assertStringContainsString('($user)', $compiled);
     }
+
+    public function testCompileContextDirectivesAndTags(): void
+    {
+        $template = '<context name="theme" :value="[\'mode\' => \'dark\']"><use-context name="theme" as="$theme" /></context>@context(\'auth\', [\'user\' => \'John\'])@useContext(\'auth\', \'$auth\')@endcontext';
+        $compiled = $this->compiler->compile($template);
+
+        $this->assertStringContainsString("\\Switch\\Foundation\\Context\\Facade\\Context::context('theme')->push(['mode' => 'dark']);", $compiled);
+        $this->assertStringContainsString("\$theme = \\Switch\\Foundation\\Context\\Facade\\Context::use('theme');", $compiled);
+        $this->assertStringContainsString("\\Switch\\Foundation\\Context\\Facade\\Context::context('auth')->push(['user' => 'John']);", $compiled);
+        $this->assertStringContainsString("\$auth = \\Switch\\Foundation\\Context\\Facade\\Context::use('auth');", $compiled);
+    }
+
+    public function testCompileDataAndMockDirectivesAndTags(): void
+    {
+        $template = '<data source="countries" as="$countries" /><data mock="user" count="5" as="$users" />@data(\'plans\', \'$plans\')@mock(\'post\', 3, \'$posts\')';
+        $compiled = $this->compiler->compile($template);
+
+        $this->assertStringContainsString("\$countries = function_exists('data') ? data('countries') : [];", $compiled);
+        $this->assertStringContainsString("\$users = function_exists('mock') ? mock('user', 5) : [];", $compiled);
+        $this->assertStringContainsString("\$plans = function_exists('data') ? data('plans') : [];", $compiled);
+        $this->assertStringContainsString("\$posts = function_exists('mock') ? mock('post', 3) : [];", $compiled);
+    }
 }
+

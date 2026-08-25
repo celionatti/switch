@@ -130,6 +130,80 @@ class TemplateCompiler
             $expr = $this->compileDotSyntax($m[1]);
             return '<?= \\Switch\\View\\Security\\SecurityHelper::safeJson(' . $expr . '); ?>';
         }, $contents) ?? $contents;
+        // Context API: Provide / Consume
+        $contents = $this->compileContextDirectives($contents);
+
+        // Data & Mock: Static datasets and mock data generation
+        $contents = $this->compileDataDirectives($contents);
+
+        return $contents;
+    }
+
+    /**
+     * Compile Context API directives (provide/consume).
+     */
+    private function compileContextDirectives(string $contents): string
+    {
+        // Context Provider (block): <context name="theme" :value="['mode' => 'dark']">...</context>
+        $contents = preg_replace_callback('/<(?:s-)?(?:context|provide)\s+name=[\'"]([^\'"]+)[\'"]\s+(?::value|value)=((["\'])(.*?)\3)\s*>/i', function ($m) {
+            $expr = $this->compileDotSyntax($m[4]);
+            return '<?php \\Switch\\Foundation\\Context\\Facade\\Context::context(\'' . addslashes($m[1]) . '\')->push(' . $expr . '); ?>';
+        }, $contents) ?? $contents;
+
+        // Context Provider end: </context> or </provide> or </s-context>
+        $contents = preg_replace('/<\/(?:s-)?(?:context|provide)>/i', '<?php \\Switch\\Foundation\\Context\\Facade\\Context::getManager()->context(array_key_last(\\Switch\\Foundation\\Context\\Facade\\Context::all()) ?? \'_\')->pop(); ?>', $contents) ?? $contents;
+
+        // @context('theme', ['mode' => 'dark'])...@endcontext
+        $contents = preg_replace_callback('/@context\s*\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*(.*?)\s*\)/s', function ($m) {
+            $expr = $this->compileDotSyntax($m[2]);
+            return '<?php \\Switch\\Foundation\\Context\\Facade\\Context::context(\'' . addslashes($m[1]) . '\')->push(' . $expr . '); ?>';
+        }, $contents) ?? $contents;
+
+        $contents = preg_replace('/@endcontext\b/i', '<?php \\Switch\\Foundation\\Context\\Facade\\Context::getManager()->context(array_key_last(\\Switch\\Foundation\\Context\\Facade\\Context::all()) ?? \'_\')->pop(); ?>', $contents) ?? $contents;
+
+        // Context Consumer: <use-context name="theme" as="$theme" /> or <consume name="..." as="..." />
+        $contents = preg_replace_callback('/<(?:s-)?(?:use-context|consume)\s+name=[\'"]([^\'"]+)[\'"]\s+as=[\'"](\$[^\'"]+)[\'"]\s*\/?>/i', function ($m) {
+            $varName = ltrim($m[2], '$');
+            return '<?php $' . $varName . ' = \\Switch\\Foundation\\Context\\Facade\\Context::use(\'' . addslashes($m[1]) . '\'); ?>';
+        }, $contents) ?? $contents;
+
+        // @useContext('theme', '$theme') / @consume('theme', '$theme')
+        $contents = preg_replace_callback('/@(?:useContext|consume)\s*\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*[\'"](\$[^\'"]+)[\'"]\s*\)/i', function ($m) {
+            $varName = ltrim($m[2], '$');
+            return '<?php $' . $varName . ' = \\Switch\\Foundation\\Context\\Facade\\Context::use(\'' . addslashes($m[1]) . '\'); ?>';
+        }, $contents) ?? $contents;
+
+        return $contents;
+    }
+
+    /**
+     * Compile Data & Mock directives.
+     */
+    private function compileDataDirectives(string $contents): string
+    {
+        // Static Data: <data source="countries" as="$countries" />
+        $contents = preg_replace_callback('/<(?:s-)?data\s+source=[\'"]([^\'"]+)[\'"]\s+as=[\'"](\$[^\'"]+)[\'"]\s*\/?>/i', function ($m) {
+            $varName = ltrim($m[2], '$');
+            return '<?php $' . $varName . ' = function_exists(\'data\') ? data(\'' . addslashes($m[1]) . '\') : []; ?>';
+        }, $contents) ?? $contents;
+
+        // Mock Data: <data mock="user" count="5" as="$users" /> or <mock blueprint="user" count="5" as="$users" />
+        $contents = preg_replace_callback('/<(?:s-)?(?:data\s+mock|mock(?:\s+blueprint)?)=[\'"]([^\'"]+)[\'"]\s+count=[\'"](\d+)[\'"]\s+as=[\'"](\$[^\'"]+)[\'"]\s*\/?>/i', function ($m) {
+            $varName = ltrim($m[3], '$');
+            return '<?php $' . $varName . ' = function_exists(\'mock\') ? mock(\'' . addslashes($m[1]) . '\', ' . (int) $m[2] . ') : []; ?>';
+        }, $contents) ?? $contents;
+
+        // @data('countries', '$countries')
+        $contents = preg_replace_callback('/@data\s*\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*[\'"](\$[^\'"]+)[\'"]\s*\)/i', function ($m) {
+            $varName = ltrim($m[2], '$');
+            return '<?php $' . $varName . ' = function_exists(\'data\') ? data(\'' . addslashes($m[1]) . '\') : []; ?>';
+        }, $contents) ?? $contents;
+
+        // @mock('user', 5, '$users')
+        $contents = preg_replace_callback('/@mock\s*\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*(\d+)\s*,\s*[\'"](\$[^\'"]+)[\'"]\s*\)/i', function ($m) {
+            $varName = ltrim($m[3], '$');
+            return '<?php $' . $varName . ' = function_exists(\'mock\') ? mock(\'' . addslashes($m[1]) . '\', ' . (int) $m[2] . ') : []; ?>';
+        }, $contents) ?? $contents;
 
         return $contents;
     }
