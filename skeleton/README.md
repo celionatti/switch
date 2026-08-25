@@ -6,12 +6,16 @@
 
 ## ⚡ Key Features
 
-- 🧩 **100% Modular Architecture**: Built on 10 decoupled packages (`switch/container`, `switch/http-message`, `switch/router`, `switch/events`, `switch/config`, `switch/kernel`, `switch/view`, `switch/database`, `switch/error-handler`, `switch/console`).
-- 🚀 **Blazing Fast**: Lightweight routing, lazy loading, and minimal overhead.
+- 🧩 **100% Modular Architecture**: Built on decoupled PSR-compliant packages (`switch/container`, `switch/http-message`, `switch/router`, `switch/events`, `switch/config`, `switch/kernel`, `switch/view`, `switch/database`, `switch/error-handler`, `switch/console`, `switch/head`, `switch/live`, `switch/controller`, `switch/session`, `switch/foundation`).
+- 🚀 **Blazing Fast**: Lightweight routing, lazy loading, and minimal memory overhead.
 - 🎨 **HTML Tag View Components**: Intuitive `<x-card>`, `<x-button>`, `<x-alert>`, `<x-modal>`, `<x-spinner>`, `<x-skeleton>`, and `<x-avatar>` UI tags with built-in fluid responsive CSS.
+- ⚡ **Switch Live**: Zero-JS SPA reactivity with instant transitions, DOM morphing, prefetching, and live state synchronization.
+- 🌊 **Switch Flow**: Model state machines with guarded transitions and automatic audit trails.
+- 🌉 **Switch Bridge**: Production-ready inbound/outbound webhook engine with HMAC signing, replay attack protection, and idempotency key deduplication.
 - 🛡️ **Security by Default**: Built-in CSRF protection (`@csrf`), honeypots (`@honeypot`), CSP nonces (`@nonce`), XSS sanitization (`cleanHtml`), and script breakout prevention.
 - 🗄️ **Fluent ORM & Database**: Active Record ORM, migration builder, eager loading (N+1 protection), soft deletes, JSON attribute casting, and scope builders.
 - 💥 **Futuristic Error Handler**: Beautiful dark-mode stack trace UI in development, silent secure pages in production, with custom reporters (Log, Slack, Sentry).
+- 🧪 **Switch Testbench**: Fluent Laravel-style testing DSL (`get`, `postJson`, `assertOk`, `assertJsonPath`, `assertJsonStructure`).
 - ⚡ **Colorful Switch CLI & Tinker**: Artisan-inspired CLI (`php switch`) with generator commands, serve, route list, and interactive `tinker` REPL shell.
 
 ---

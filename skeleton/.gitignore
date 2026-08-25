@@ -1,12 +1,15 @@
 /vendor/
 /.env
 /bootstrap/dev-autoload.php
+/public/storage
 /storage/views/*
 !/storage/views/.gitkeep
 /storage/cache/*
 !/storage/cache/.gitkeep
 /storage/logs/*
 !/storage/logs/.gitkeep
+/storage/app/public/*
+!/storage/app/public/.gitkeep
 /database/database.sqlite
 .DS_Store
 Thumbs.db
