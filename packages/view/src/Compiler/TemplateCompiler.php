@@ -136,6 +136,60 @@ class TemplateCompiler
         // Data & Mock: Static datasets and mock data generation
         $contents = $this->compileDataDirectives($contents);
 
+        // View Fragment Caching: @cache / <cache>
+        $contents = $this->compileCacheDirectives($contents);
+
+        return $contents;
+    }
+
+    /**
+     * Compile View Fragment Caching directives (@cache / <cache>).
+     */
+    private function compileCacheDirectives(string $contents): string
+    {
+        // Tag Open: <cache key="..." ttl="..." tags="..."> or <cache :key="..." :ttl="...">
+        $contents = preg_replace_callback('/<(?:s-)?cache\b([^>]*)>/i', function ($m) {
+            $attrs = $m[1];
+
+            // Extract key
+            $key = '\'default\'';
+            if (preg_match('/(?:^|\s):key=[\'"]([^\'"]+)[\'"]/i', $attrs, $km)) {
+                $key = $this->compileDotSyntax($km[1]);
+            } elseif (preg_match('/(?:^|\s)key=[\'"]([^\'"]+)[\'"]/i', $attrs, $km)) {
+                $key = '\'' . addslashes($km[1]) . '\'';
+            }
+
+            // Extract ttl
+            $ttl = 'null';
+            if (preg_match('/(?:^|\s):ttl=[\'"]([^\'"]+)[\'"]/i', $attrs, $tm)) {
+                $ttl = $this->compileDotSyntax($tm[1]);
+            } elseif (preg_match('/(?:^|\s)ttl=[\'"]([^\'"]+)[\'"]/i', $attrs, $tm)) {
+                $ttl = is_numeric($tm[1]) ? $tm[1] : '\'' . addslashes($tm[1]) . '\'';
+            }
+
+            // Extract tags
+            $tags = '[]';
+            if (preg_match('/(?:^|\s):tags=[\'"]([^\'"]+)[\'"]/i', $attrs, $tgm)) {
+                $tags = $this->compileDotSyntax($tgm[1]);
+            } elseif (preg_match('/(?:^|\s)tags=[\'"]([^\'"]+)[\'"]/i', $attrs, $tgm)) {
+                $tags = '\'' . addslashes($tgm[1]) . '\'';
+            }
+
+            return '<?php if (! \\Switch\\View\\Cache\\FragmentCache::start(' . $key . ', ' . $ttl . ', ' . $tags . ')): ?>';
+        }, $contents) ?? $contents;
+
+        // Tag Close: </cache> or </s-cache>
+        $contents = preg_replace('/<\/(?:s-)?cache\s*>/i', '<?php echo \\Switch\\View\\Cache\\FragmentCache::end(); endif; ?>', $contents) ?? $contents;
+
+        // Directive Open: @cache($key, $ttl, $tags)
+        $contents = preg_replace_callback('/@cache\s*\((.*?)\)/s', function ($m) {
+            $args = $this->compileDotSyntax($m[1]);
+            return '<?php if (! \\Switch\\View\\Cache\\FragmentCache::start(' . $args . ')): ?>';
+        }, $contents) ?? $contents;
+
+        // Directive Close: @endcache
+        $contents = preg_replace('/@endcache\b/i', '<?php echo \\Switch\\View\\Cache\\FragmentCache::end(); endif; ?>', $contents) ?? $contents;
+
         return $contents;
     }
 

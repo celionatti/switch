@@ -1,1 +1,0 @@
-1787419247a:1:{i:0;a:6:{s:12:"order_number";s:8:"ORD-5555";s:7:"message";s:28:"Order #ORD-5555 has shipped!";s:5:"title";s:13:"Order Shipped";s:2:"id";s:36:"ff7f3682-3a49-48a1-a765-0b879be3f844";s:4:"type";s:48:"Switch\Foundation\Tests\OrderShippedNotification";s:9:"timestamp";i:1787418647;}}
