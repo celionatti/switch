@@ -32,6 +32,9 @@
         <testsuite name="Database">
             <directory>packages/database/tests</directory>
         </testsuite>
+        <testsuite name="DebugBar">
+            <directory>packages/debugbar/tests</directory>
+        </testsuite>
         <testsuite name="Sandbox">
             <directory>sandbox/tests</directory>
         </testsuite>

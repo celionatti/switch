@@ -43,6 +43,29 @@ class ViewEngine
      */
     private array $sharedData = [];
 
+    /**
+     * @var array<int, callable> View render listeners
+     */
+    private static array $viewListeners = [];
+
+    /**
+     * Register a callback to listen for rendered views.
+     *
+     * @param callable(string, string, float, array): void $callback
+     */
+    public static function listen(callable $callback): void
+    {
+        self::$viewListeners[] = $callback;
+    }
+
+    /**
+     * Clear all registered view listeners.
+     */
+    public static function resetListeners(): void
+    {
+        self::$viewListeners = [];
+    }
+
     public function __construct(string $viewsPath, ?string $cachePath = null, ?TemplateCompiler $compiler = null)
     {
         $this->viewsPath = rtrim($viewsPath, '/\\');
@@ -119,10 +142,20 @@ class ViewEngine
         $previousLayout = $this->layout;
         $this->layout = null;
 
+        $startTime = !empty(self::$viewListeners) ? microtime(true) : 0.0;
+
         $result = $this->evaluate($compiledPath, $mergedData);
 
         $currentLayout = $this->layout;
         $this->layout = $previousLayout;
+
+        // Notify view listeners (zero overhead when none registered)
+        if (!empty(self::$viewListeners)) {
+            $renderTimeMs = (microtime(true) - $startTime) * 1000;
+            foreach (self::$viewListeners as $listener) {
+                $listener($view, $viewPath, $renderTimeMs, $data);
+            }
+        }
 
         if ($currentLayout !== null) {
             return $this->render($currentLayout, $mergedData);

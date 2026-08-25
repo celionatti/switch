@@ -27,6 +27,7 @@
         "switch/container": "*",
         "switch/controller": "*",
         "switch/database": "*",
+        "switch/debugbar": "*",
         "switch/error-handler": "*",
         "switch/events": "*",
         "switch/foundation": "*",
@@ -52,6 +53,7 @@
             "Switch\\Kernel\\": "packages/kernel/src/",
             "Switch\\View\\": "packages/view/src/",
             "Switch\\Database\\": "packages/database/src/",
+            "Switch\\DebugBar\\": "packages/debugbar/src/",
             "Switch\\ErrorHandler\\": "packages/error-handler/src/",
             "Switch\\Console\\": "packages/console/src/",
             "Switch\\Head\\": "packages/head/src/",
@@ -70,7 +72,8 @@
             "packages/live/src/helpers.php",
             "packages/controller/src/helpers.php",
             "packages/session/src/helpers.php",
-            "packages/foundation/src/helpers.php"
+            "packages/foundation/src/helpers.php",
+            "packages/debugbar/src/helpers.php"
         ]
     },
     "scripts": {
