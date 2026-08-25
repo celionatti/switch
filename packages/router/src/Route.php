@@ -131,6 +131,41 @@ class Route
     }
 
     /**
+     * @var array<int, object>
+     */
+    private array $attributes = [];
+
+    public function attribute(object $attribute): self
+    {
+        $this->attributes[] = $attribute;
+        return $this;
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    /**
+     * @template T of object
+     * @param class-string<T> $class
+     * @return T|null
+     */
+    public function getAttribute(string $class): ?object
+    {
+        foreach ($this->attributes as $attr) {
+            if ($attr instanceof $class) {
+                return $attr;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Compile route path into Regex for matching parameters.
      */
     public function compileRegex(): string

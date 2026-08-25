@@ -137,6 +137,145 @@ class Router
     }
 
     /**
+     * Register Instant Auto-CRUD REST API endpoints for an ORM Model.
+     *
+     * @param string $name Route URI segment (e.g. 'products' or 'api/v1/users')
+     * @param string $modelClass FQCN of the Model
+     * @param array<string, mixed> $options Configuration options (only, except, middleware, rules, etc.)
+     */
+    public function apiResource(string $name, string $modelClass, array $options = []): void
+    {
+        $baseName = trim($name, '/');
+        $routePrefix = str_replace('/', '.', $baseName);
+
+        $controllerClass = \Switch\Foundation\Api\AutoCrud\AutoCrudController::class;
+        $controller = class_exists($controllerClass) ? new $controllerClass($modelClass, $options) : null;
+
+        $only = $options['only'] ?? ['index', 'show', 'store', 'update', 'destroy'];
+        $except = $options['except'] ?? [];
+        $actions = array_diff($only, $except);
+        $middleware = (array) ($options['middleware'] ?? []);
+
+        if (in_array('index', $actions, true)) {
+            $r = $this->get("{$baseName}", $controller ? [$controller, 'index'] : [$modelClass, 'index'])->name("{$routePrefix}.index");
+            if (!empty($middleware)) {
+                $r->middleware(...$middleware);
+            }
+        }
+        if (in_array('store', $actions, true)) {
+            $r = $this->post("{$baseName}", $controller ? [$controller, 'store'] : [$modelClass, 'store'])->name("{$routePrefix}.store");
+            if (!empty($middleware)) {
+                $r->middleware(...$middleware);
+            }
+        }
+        if (in_array('show', $actions, true)) {
+            $r = $this->get("{$baseName}/{id}", $controller ? [$controller, 'show'] : [$modelClass, 'show'])->name("{$routePrefix}.show");
+            if (!empty($middleware)) {
+                $r->middleware(...$middleware);
+            }
+        }
+        if (in_array('update', $actions, true)) {
+            $r1 = $this->put("{$baseName}/{id}", $controller ? [$controller, 'update'] : [$modelClass, 'update'])->name("{$routePrefix}.update");
+            $r2 = $this->patch("{$baseName}/{id}", $controller ? [$controller, 'update'] : [$modelClass, 'update']);
+            if (!empty($middleware)) {
+                $r1->middleware(...$middleware);
+                $r2->middleware(...$middleware);
+            }
+        }
+        if (in_array('destroy', $actions, true)) {
+            $r = $this->delete("{$baseName}/{id}", $controller ? [$controller, 'destroy'] : [$modelClass, 'destroy'])->name("{$routePrefix}.destroy");
+            if (!empty($middleware)) {
+                $r->middleware(...$middleware);
+            }
+        }
+    }
+
+    /**
+     * Scan PHP 8.2+ declarative attributes (#[Get], #[Post], #[Authorize], #[RateLimit], #[Cached]) on classes.
+     *
+     * @param array<int, string|object>|string|object $targets Class names, controller instances, or directory paths
+     */
+    public function scanAttributes(array|string|object $targets): self
+    {
+        $classes = [];
+
+        foreach ((array) $targets as $target) {
+            if (is_object($target)) {
+                $classes[] = get_class($target);
+            } elseif (is_string($target) && class_exists($target)) {
+                $classes[] = $target;
+            } elseif (is_string($target) && is_dir($target)) {
+                $files = glob(rtrim($target, '/\\') . '/*.php') ?: [];
+                foreach ($files as $file) {
+                    $content = file_get_contents($file);
+                    if ($content && preg_match('/namespace\s+([^;]+);/', $content, $ns) && preg_match('/class\s+([a-zA-Z0-9_]+)/', $content, $cls)) {
+                        $fqcn = trim($ns[1]) . '\\' . trim($cls[1]);
+                        if (class_exists($fqcn)) {
+                            $classes[] = $fqcn;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach (array_unique($classes) as $class) {
+            $ref = new \ReflectionClass($class);
+            $classPrefix = '';
+            $classMiddleware = [];
+
+            // Read Class-Level Attributes
+            foreach ($ref->getAttributes() as $attr) {
+                $instance = $attr->newInstance();
+                if ($instance instanceof \Switch\Router\Attributes\Route) {
+                    $classPrefix = $instance->path;
+                }
+                if ($instance instanceof \Switch\Router\Attributes\Middleware) {
+                    $classMiddleware = array_merge($classMiddleware, $instance->middleware);
+                }
+            }
+
+            // Read Method-Level Attributes
+            foreach ($ref->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+                $routeAttributes = [];
+                $methodMiddleware = [];
+                $behaviorAttributes = [];
+
+                foreach ($method->getAttributes() as $attr) {
+                    $instance = $attr->newInstance();
+                    if ($instance instanceof \Switch\Router\Attributes\Route) {
+                        $routeAttributes[] = $instance;
+                    } elseif ($instance instanceof \Switch\Router\Attributes\Middleware) {
+                        $methodMiddleware = array_merge($methodMiddleware, $instance->middleware);
+                    } else {
+                        $behaviorAttributes[] = $instance;
+                    }
+                }
+
+                foreach ($routeAttributes as $routeAttr) {
+                    $path = '/' . trim($classPrefix . '/' . trim($routeAttr->path, '/'), '/');
+                    $handler = [$class, $method->getName()];
+                    $route = $this->addRoute($routeAttr->methods, $path, $handler);
+
+                    if ($routeAttr->name) {
+                        $route->name($routeAttr->name);
+                    }
+
+                    $allMiddleware = array_merge($classMiddleware, $routeAttr->middleware, $methodMiddleware);
+                    if (!empty($allMiddleware)) {
+                        $route->middleware(...$allMiddleware);
+                    }
+
+                    foreach ($behaviorAttributes as $bAttr) {
+                        $route->attribute($bAttr);
+                    }
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Fluent Group entrypoint: Route::prefix('/api')
      */
     public function prefix(string $prefix): RouteGroupBuilder

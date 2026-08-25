@@ -214,6 +214,47 @@ Route::setRouter($myRouter);
 $router = Route::getRouter();
 ```
 
+### Instant Auto-CRUD API Resources (`Route::apiResource`)
+
+Expose a complete RESTful API with filtering, search, sorting, and pagination for any model in a single line:
+
+```php
+use Switch\Router\Facade\Route;
+use App\Models\Product;
+
+Route::apiResource('api/v1/products', Product::class, [
+    'rules' => ['name' => 'required', 'price' => 'required|numeric'],
+    'searchable' => ['name', 'description'],
+    'per_page' => 20,
+]);
+```
+
+### Declarative Route Attributes (`#[Route]`, `#[Get]`, `#[Post]`, etc.)
+
+Define routes and middleware directly on controller methods using PHP 8.2+ attributes:
+
+```php
+use Switch\Router\Attributes\Route;
+use Switch\Router\Attributes\Get;
+use Switch\Router\Attributes\Post;
+use Switch\Router\Attributes\Middleware;
+
+#[Route('/api/v1')]
+#[Middleware('api_auth')]
+class UserController
+{
+    #[Get('/users', name: 'api.users.index')]
+    public function index() { ... }
+
+    #[Post('/users')]
+    public function store() { ... }
+}
+
+// Auto-register routes from classes or directories:
+Route::scanAttributes(UserController::class);
+// or: Route::scanAttributes(app_path('Controllers'));
+```
+
 ---
 
 ## 🔧 Using with Switch\Kernel
