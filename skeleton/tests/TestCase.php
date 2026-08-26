@@ -32,5 +32,14 @@ abstract class TestCase extends BaseTestCase
         ];
 
         $runner->run($migrations);
+
+        // Configure View Engine for test rendering
+        if (class_exists(\Switch\View\View::class) && class_exists(\Switch\View\Engine\ViewEngine::class)) {
+            $viewEngine = new \Switch\View\Engine\ViewEngine(
+                viewsPath: __DIR__ . '/../resources/views',
+                cachePath: sys_get_temp_dir() . '/switch_test_views'
+            );
+            \Switch\View\View::setEngine($viewEngine);
+        }
     }
 }

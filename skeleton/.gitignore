@@ -11,5 +11,8 @@
 /storage/app/public/*
 !/storage/app/public/.gitkeep
 /database/database.sqlite
+*.sqlite
+*.sqlite3
+/public/database/
 .DS_Store
 Thumbs.db
