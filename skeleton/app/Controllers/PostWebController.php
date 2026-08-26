@@ -172,6 +172,26 @@ class PostWebController extends Controller
     private function ensureSeedData(): void
     {
         try {
+            $db = Post::getConnection();
+            if ($db) {
+                // Ensure migrations are run if tables do not exist
+                $repo = new \Switch\Database\Migration\MigrationRepository($db);
+                $runner = new \Switch\Database\Migration\MigrationRunner($db, $repo);
+
+                $migrationsDir = __DIR__ . '/../../database/migrations';
+                if (is_dir($migrationsDir)) {
+                    $files = glob($migrationsDir . '/*.php') ?: [];
+                    $migrations = [];
+                    foreach ($files as $file) {
+                        $name = basename($file, '.php');
+                        $migrations[$name] = require $file;
+                    }
+                    if (!empty($migrations)) {
+                        $runner->run($migrations);
+                    }
+                }
+            }
+
             if (Post::query()->count() === 0) {
                 $p1 = Post::create([
                     'title' => 'Getting Started with Switch Framework',
