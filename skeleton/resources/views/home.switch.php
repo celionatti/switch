@@ -492,7 +492,8 @@
         <include file="partials.counter-demo" />
     </div>
 
-    <!-- Core Architecture Section -->
+    <!-- Core Architecture Section (Cached with Fragment Caching) -->
+    @cache('home_features', 3600, ['ecosystem'])
     <div class="section-header">
         <div class="section-tag">Ecosystem</div>
         <h2 class="section-title">Engineered For Pure Performance</h2>
@@ -510,4 +511,5 @@
             </div>
         </foreach>
     </div>
+    @endcache
 </section>
