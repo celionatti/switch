@@ -196,11 +196,19 @@ class PostWebController extends Controller
         return $this->redirect('/posts');
     }
 
+    private static bool $seeded = false;
+
     /**
      * Seed initial demo posts if the database is currently empty.
+     * Runs only once per request to avoid duplicate migration-check queries.
      */
     private function ensureSeedData(): void
     {
+        if (self::$seeded) {
+            return;
+        }
+        self::$seeded = true;
+
         try {
             $db = Post::getConnection();
             if ($db) {
