@@ -349,20 +349,20 @@
 
             <div class="flow-actions-group">
                 <if cond="$canPublish">
-                    <form action="/posts/{{ $post.id }}/publish" method="POST" style="display: inline;">
+                    <form action="/posts/{{ $post.id }}/publish" method="POST" switch-to style="display: inline;">
                         @csrf
                         <button type="submit" class="btn-flow btn-publish">✓ Publish Post</button>
                     </form>
                 </if>
 
                 <if cond="$canArchive">
-                    <form action="/posts/{{ $post.id }}/archive" method="POST" style="display: inline;">
+                    <form action="/posts/{{ $post.id }}/archive" method="POST" switch-to style="display: inline;">
                         @csrf
                         <button type="submit" class="btn-flow btn-archive">📦 Archive Post</button>
                     </form>
                 </if>
 
-                <form action="/posts/{{ $post.id }}/delete" method="POST" style="display: inline;" onsubmit="return confirm('Soft-delete this post?');">
+                <form action="/posts/{{ $post.id }}/delete" method="POST" switch-to style="display: inline;" onsubmit="return confirm('Soft-delete this post?');">
                     @csrf
                     <button type="submit" class="btn-flow btn-delete">🗑 Delete</button>
                 </form>

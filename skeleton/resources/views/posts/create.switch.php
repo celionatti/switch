@@ -182,7 +182,7 @@
                 <p>Created through CreatePostAction with automatic validation & audit log generation.</p>
             </div>
 
-            <form action="/posts" method="POST">
+            <form action="/posts" method="POST" switch-to>
                 @csrf
 
                 <div class="form-group">
