@@ -90,7 +90,7 @@ class TemplateCompiler
         $contents = preg_replace('/@(?:notificationStream|notification_stream|notifications)\b/i', '<?= function_exists(\'notification_stream\') ? notification_stream() : \'\'; ?>', $contents) ?? $contents;
 
         // Head Meta / SEO: @head  <==>  <head-meta /> or <head-tags /> or <s-head />
-        $contents = preg_replace('/<(?:s-)?(?:head-meta|head-tags|head:tags|head)\s*\/?>/i', '<?= function_exists(\'head\') ? head()->render() : \'\'; ?>', $contents) ?? $contents;
+        $contents = preg_replace('/<(?:s-head|head-meta|head-tags|head:tags)\s*\/?>/i', '<?= function_exists(\'head\') ? head()->render() : \'\'; ?>', $contents) ?? $contents;
         $contents = preg_replace('/@head\b/i', '<?= function_exists(\'head\') ? head()->render() : \'\'; ?>', $contents) ?? $contents;
 
         // Flash Messages: @flash('toast')  <==>  <flash mode="toast" position="bottom-right" /> or <s-flash />
@@ -268,15 +268,16 @@ class TemplateCompiler
     private function compileLayoutsAndPartials(string $contents): string
     {
         // Layout Extension: @extends('layouts.app') / @layout('layouts.app')  <==>  <layout name="layouts.app" /> or <extends name="layouts.app" />
-        $contents = preg_replace_callback('/<(?:s-)?(?:layout|extends)\s+(?:name|layout|file)=[\'"]([^\'"]+)[\'"]\s*\/?>/i', function ($m) {
+        $contents = preg_replace_callback('/<(?:s-)?(?:layout|extends)\s+[^>]*?(?:name|layout|file)=[\'"]([^\'"]+)[\'"][^>]*?\/?>/i', function ($m) {
             return '<?php $this->extend(\'' . $m[1] . '\'); ?>';
         }, $contents) ?? $contents;
+        $contents = preg_replace('/<\/(?:s-)?(?:layout|extends)>/i', '', $contents) ?? $contents;
         $contents = preg_replace_callback('/@(?:extends|layout)\s*\(\s*[\'"]([^\'"]+)[\'"]\s*\)/i', function ($m) {
             return '<?php $this->extend(\'' . $m[1] . '\'); ?>';
         }, $contents) ?? $contents;
 
         // Section Start: @section('content')  <==>  <section name="content"> or <s-section name="content">
-        $contents = preg_replace_callback('/<(?:s-)?section\s+name=[\'"]([^\'"]+)[\'"]\s*>/i', function ($m) {
+        $contents = preg_replace_callback('/<(?:s-)?section\s+[^>]*?name=[\'"]([^\'"]+)[\'"][^>]*?>/i', function ($m) {
             return '<?php $this->startSection(\'' . $m[1] . '\'); ?>';
         }, $contents) ?? $contents;
 
