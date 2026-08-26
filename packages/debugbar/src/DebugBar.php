@@ -17,6 +17,7 @@ use Switch\DebugBar\Collectors\MemoryCollector;
 use Switch\DebugBar\Collectors\QueryCollector;
 use Switch\DebugBar\Collectors\RequestCollector;
 use Switch\DebugBar\Collectors\RouteCollector;
+use Switch\DebugBar\Collectors\SecurityCollector;
 use Switch\DebugBar\Collectors\SessionCollector;
 use Switch\DebugBar\Collectors\TimeCollector;
 use Switch\DebugBar\Collectors\ViewCollector;
@@ -164,6 +165,10 @@ class DebugBar
         $this->addCollector(new EventCollector());
         $this->addCollector(new ConfigCollector());
         $this->addCollector(new HistoryCollector($this->requestId));
+
+        if (class_exists(\Switch\Foundation\Sentinel\Sentinel::class)) {
+            $this->addCollector(new SecurityCollector());
+        }
 
         $this->bootFrameworkListeners();
     }

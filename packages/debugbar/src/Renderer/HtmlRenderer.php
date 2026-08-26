@@ -182,6 +182,7 @@ HTML;
                 'events' => $this->renderEventsPanel($data),
                 'config' => $this->renderConfigPanel($data),
                 'history' => $this->renderHistoryPanel($data),
+                'security' => $this->renderSecurityPanel($data),
                 default => '<pre class="sdb-dumper">' . htmlspecialchars(json_encode($data, JSON_PRETTY_PRINT), ENT_QUOTES, 'UTF-8') . '</pre>',
             };
 
@@ -704,6 +705,94 @@ HTML;
 
         $html .= '</table>';
         $html .= '</div>';
+        return $html;
+    }
+
+    private function renderSecurityPanel(array $data): string
+    {
+        $score = $data['score'] ?? 100;
+        $grade = $data['grade'] ?? 'A+';
+        $isHealthy = !empty($data['is_healthy']);
+        $counts = $data['counts'] ?? ['critical' => 0, 'warning' => 0, 'info' => 0, 'pass' => 0];
+        $results = $data['results'] ?? [];
+
+        $scoreColor = $score >= 90 ? 'var(--sdb-emerald)' : ($score >= 75 ? 'var(--sdb-amber)' : 'var(--sdb-rose)');
+        $statusText = $isHealthy ? 'System Secure' : 'Action Required';
+        $statusClass = $isHealthy ? 'sdb-badge-success' : 'sdb-badge-danger';
+
+        $html = <<<HTML
+<div style="margin-bottom: 16px;">
+    <div class="sdb-grid">
+        <div class="sdb-metric-card">
+            <div class="sdb-metric-label">Security & Threat Score</div>
+            <div class="sdb-metric-value" style="color: {$scoreColor};">{$score}/100 <span style="font-size: 14px; color: var(--sdb-text-muted);">({$grade})</span></div>
+            <div style="margin-top: 6px;"><span class="sdb-badge {$statusClass}">● {$statusText}</span></div>
+        </div>
+        <div class="sdb-metric-card">
+            <div class="sdb-metric-label">Critical Vulnerabilities</div>
+            <div class="sdb-metric-value" style="color: var(--sdb-rose);">{$counts['critical']}</div>
+            <div style="font-size: 11px; color: var(--sdb-text-dim); margin-top: 4px;">Immediate fix recommended</div>
+        </div>
+        <div class="sdb-metric-card">
+            <div class="sdb-metric-label">Security & Health Warnings</div>
+            <div class="sdb-metric-value" style="color: var(--sdb-amber);">{$counts['warning']}</div>
+            <div style="font-size: 11px; color: var(--sdb-text-dim); margin-top: 4px;">Headers & configuration</div>
+        </div>
+        <div class="sdb-metric-card">
+            <div class="sdb-metric-label">Passed Checks</div>
+            <div class="sdb-metric-value" style="color: var(--sdb-emerald);">{$counts['pass']}</div>
+            <div style="font-size: 11px; color: var(--sdb-text-dim); margin-top: 4px;">Defenses verified</div>
+        </div>
+    </div>
+</div>
+
+<div style="font-weight: 600; color: #fff; margin-bottom: 12px; font-size: 13px;">Diagnostic Findings & Threat Analysis</div>
+HTML;
+
+        if (empty($results)) {
+            $html .= '<div style="color: var(--sdb-text-dim); padding: 16px;">No security checks recorded.</div>';
+            return $html;
+        }
+
+        foreach ($results as $res) {
+            $lvl = $res['level'] ?? 'PASS';
+            $category = htmlspecialchars((string) ($res['category'] ?? 'Security'), ENT_QUOTES, 'UTF-8');
+            $title = htmlspecialchars((string) ($res['title'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $desc = htmlspecialchars((string) ($res['description'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $remediation = !empty($res['remediation']) ? htmlspecialchars((string) $res['remediation'], ENT_QUOTES, 'UTF-8') : null;
+
+            $badgeClass = match ($lvl) {
+                'CRITICAL' => 'sdb-badge-danger',
+                'WARNING' => 'sdb-badge-warning',
+                'INFO' => 'sdb-badge-info',
+                default => 'sdb-badge-success',
+            };
+
+            $html .= '<div class="sdb-card">';
+            $html .= '<div class="sdb-card-header">';
+            $html .= '<div class="sdb-card-title">';
+            $html .= '<span class="sdb-badge ' . $badgeClass . '">' . $lvl . '</span> ';
+            $html .= '<span class="sdb-badge">' . $category . '</span> ';
+            $html .= '<strong>' . $title . '</strong>';
+            $html .= '</div>';
+            $html .= '</div>';
+
+            $html .= '<div class="sdb-card-body">';
+            $html .= '<p style="color: var(--sdb-text-muted); font-size: 11.5px; line-height: 1.5; margin-bottom: ' . ($remediation ? '8px' : '0') . ';">' . $desc . '</p>';
+
+            if ($remediation !== null) {
+                $html .= '<div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.4); border: 1px solid var(--sdb-border); border-radius: var(--sdb-radius-sm); padding: 8px 10px; margin-top: 6px; gap: 8px;">';
+                $html .= '<div style="font-family: var(--sdb-mono); font-size: 11px; color: var(--sdb-cyan); word-break: break-all;"><strong>Fix:</strong> ' . $remediation . '</div>';
+                $html .= '<button type="button" class="sdb-btn-copy" data-copy="' . $remediation . '" title="Copy Fix">';
+                $html .= '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';
+                $html .= '</button>';
+                $html .= '</div>';
+            }
+
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+
         return $html;
     }
 
