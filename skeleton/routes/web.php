@@ -5,12 +5,19 @@ declare(strict_types=1);
 use Switch\Router\Facade\Route;
 use App\Controllers\HomeController;
 use App\Controllers\PostWebController;
+use App\Controllers\ShowcaseController;
 
 // Home & Live SPA Demos
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/live/counter/increment', [HomeController::class, 'incrementCounter'])->name('live.counter.increment');
 Route::post('/live/counter/decrement', [HomeController::class, 'decrementCounter'])->name('live.counter.decrement');
 Route::get('/about', fn() => 'About Switch Framework')->name('about');
+
+// Framework Subsystems & Feature Showcase
+Route::get('/features', [ShowcaseController::class, 'index'])->name('features');
+Route::get('/showcase', [ShowcaseController::class, 'index'])->name('showcase');
+Route::post('/showcase/mocks', [ShowcaseController::class, 'generateMocks'])->name('showcase.mocks');
+Route::post('/showcase/webhook', [ShowcaseController::class, 'dispatchWebhook'])->name('showcase.webhook');
 
 // Blog & Posts CRUD / Flow Web Routes
 Route::get('/posts', [PostWebController::class, 'index'])->name('posts.index');

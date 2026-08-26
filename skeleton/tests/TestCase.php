@@ -29,6 +29,7 @@ abstract class TestCase extends BaseTestCase
         $migrations = [
             '2026_01_01_000000_create_users_table' => require __DIR__ . '/../database/migrations/2026_01_01_000000_create_users_table.php',
             '2026_01_01_000001_create_posts_table' => require __DIR__ . '/../database/migrations/2026_01_01_000001_create_posts_table.php',
+            '2026_01_01_000002_create_passwordless_tokens_table' => require __DIR__ . '/../database/migrations/2026_01_01_000002_create_passwordless_tokens_table.php',
         ];
 
         $runner->run($migrations);
