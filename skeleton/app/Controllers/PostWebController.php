@@ -76,15 +76,24 @@ class PostWebController extends Controller
     /**
      * Display single post view (e.g. /posts/3) with state machine flow and audit trail.
      */
-    public function show(int $id): string|ResponseInterface
+    public function show(mixed $id = null, ?ServerRequestInterface $request = null): string|ResponseInterface
     {
         $this->ensureSeedData();
 
+        if ($id instanceof ServerRequestInterface) {
+            $request = $id;
+            $id = $request->getAttribute('id') ?? $request->getAttribute('post');
+        } elseif ($id === null && $request !== null) {
+            $id = $request->getAttribute('id') ?? $request->getAttribute('post');
+        }
+
         /** @var Post|null $post */
-        $post = Post::find($id);
+        $post = is_numeric($id)
+            ? Post::find((int) $id)
+            : Post::where('slug', '=', (string) $id)->first();
 
         if (!$post) {
-            $this->toast("Post #{$id} not found.", 'error');
+            $this->toast("Post '{$id}' not found.", 'error');
             return $this->redirect('/posts');
         }
 
@@ -104,10 +113,17 @@ class PostWebController extends Controller
     /**
      * Transition post to published state using Finite State Machine (Flow).
      */
-    public function publish(int $id): ResponseInterface
+    public function publish(mixed $id = null, ?ServerRequestInterface $request = null): ResponseInterface
     {
+        if ($id instanceof ServerRequestInterface) {
+            $request = $id;
+            $id = $request->getAttribute('id');
+        } elseif ($id === null && $request !== null) {
+            $id = $request->getAttribute('id');
+        }
+
         /** @var Post|null $post */
-        $post = Post::find($id);
+        $post = is_numeric($id) ? Post::find((int) $id) : Post::where('slug', '=', (string) $id)->first();
 
         if (!$post) {
             $this->toast('Post not found', 'error');
@@ -117,21 +133,28 @@ class PostWebController extends Controller
         try {
             $post->applyFlow('publish');
             $post->save();
-            $this->toast("Post #{$id} is now published!", 'success');
+            $this->toast("Post #{$post->id} is now published!", 'success');
         } catch (\Throwable $e) {
             $this->toast("Could not publish post: " . $e->getMessage(), 'error');
         }
 
-        return $this->redirect("/posts/{$id}");
+        return $this->redirect("/posts/{$post->id}");
     }
 
     /**
      * Transition post to archived state using Finite State Machine (Flow).
      */
-    public function archive(int $id): ResponseInterface
+    public function archive(mixed $id = null, ?ServerRequestInterface $request = null): ResponseInterface
     {
+        if ($id instanceof ServerRequestInterface) {
+            $request = $id;
+            $id = $request->getAttribute('id');
+        } elseif ($id === null && $request !== null) {
+            $id = $request->getAttribute('id');
+        }
+
         /** @var Post|null $post */
-        $post = Post::find($id);
+        $post = is_numeric($id) ? Post::find((int) $id) : Post::where('slug', '=', (string) $id)->first();
 
         if (!$post) {
             $this->toast('Post not found', 'error');
@@ -141,26 +164,33 @@ class PostWebController extends Controller
         try {
             $post->applyFlow('archive');
             $post->save();
-            $this->toast("Post #{$id} has been archived.", 'info');
+            $this->toast("Post #{$post->id} has been archived.", 'info');
         } catch (\Throwable $e) {
             $this->toast("Could not archive post: " . $e->getMessage(), 'error');
         }
 
-        return $this->redirect("/posts/{$id}");
+        return $this->redirect("/posts/{$post->id}");
     }
 
     /**
      * Soft delete a post.
      */
-    public function destroy(int $id): ResponseInterface
+    public function destroy(mixed $id = null, ?ServerRequestInterface $request = null): ResponseInterface
     {
+        if ($id instanceof ServerRequestInterface) {
+            $request = $id;
+            $id = $request->getAttribute('id');
+        } elseif ($id === null && $request !== null) {
+            $id = $request->getAttribute('id');
+        }
+
         /** @var Post|null $post */
-        $post = Post::find($id);
+        $post = is_numeric($id) ? Post::find((int) $id) : Post::where('slug', '=', (string) $id)->first();
 
         if ($post) {
-            $post->recordAudit('deleted', ['id' => $id]);
+            $post->recordAudit('deleted', ['id' => $post->id]);
             $post->delete();
-            $this->toast("Post #{$id} deleted successfully.", 'info');
+            $this->toast("Post #{$post->id} deleted successfully.", 'info');
         }
 
         return $this->redirect('/posts');

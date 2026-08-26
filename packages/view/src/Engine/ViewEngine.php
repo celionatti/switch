@@ -205,6 +205,14 @@ class ViewEngine
                 return $target->{$key};
             }
 
+            // ORM Model attribute access
+            if (method_exists($target, 'getAttribute')) {
+                $attr = $target->getAttribute($key);
+                if ($attr !== null) {
+                    return $attr;
+                }
+            }
+
             // ArrayAccess offset
             if ($target instanceof \ArrayAccess && $target->offsetExists($key)) {
                 return $target->offsetGet($key);
