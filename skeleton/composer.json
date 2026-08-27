@@ -32,6 +32,7 @@
         "switch/live": "^1.0",
         "switch/controller": "^1.0",
         "switch/debugbar": "^1.0",
+        "switch/diagram": "^1.0",
         "switch/session": "^1.0",
         "switch/foundation": "^1.0",
         "vlucas/phpdotenv": "^5.5 || ^5.6"

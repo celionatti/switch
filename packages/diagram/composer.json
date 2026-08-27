@@ -1,0 +1,30 @@
+{
+    "name": "switch/diagram",
+    "description": "Interactive Live Database ER Diagram and Schema Explorer for Switch Framework",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "celionatti",
+            "homepage": "https://github.com/celionatti"
+        }
+    ],
+    "require": {
+        "php": ">=8.3",
+        "switch/database": "^1.0",
+        "switch/http-message": "^1.0"
+    },
+    "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
+        "psr-4": {
+            "Switch\\Diagram\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Switch\\Diagram\\Tests\\": "tests/"
+        }
+    }
+}
