@@ -9,4 +9,17 @@ return [
     'url' => env('APP_URL', 'http://localhost:8000'),
     'timezone' => env('APP_TIMEZONE', 'UTC'),
     'locale' => 'en',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Autoloaded Service Providers
+    |--------------------------------------------------------------------------
+    |
+    | The service providers listed here will be automatically loaded during
+    | application bootstrapping to bind interfaces and boot services.
+    |
+    */
+    'providers' => [
+        App\Providers\AppServiceProvider::class,
+    ],
 ];

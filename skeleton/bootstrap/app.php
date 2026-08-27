@@ -22,9 +22,19 @@ return App::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php',
     )
     ->withMiddleware(function (MiddlewareCollector $middleware) {
-        // Example: $middleware->append(MyGlobalMiddleware::class);
+        // Global Middleware:
+        // $middleware->append(MyGlobalMiddleware::class);
+
+        // Web Route Group Middleware (Session, CSRF, Cookies):
+        // $middleware->web(\Switch\Session\Middleware\StartSession::class);
+
+        // API Route Group Middleware (Stateless):
+        // $middleware->api(\Switch\Foundation\Api\Middleware\ThrottleRequests::class);
+
+        // Route Middleware Aliases:
+        // $middleware->alias(['auth' => \Switch\Foundation\Auth\Middleware\Authenticate::class]);
     })
     ->withExceptions(function (ExceptionsCollector $exceptions) {
-        // Example: $exceptions->report(fn(Throwable $e) => custom_log($e));
+        // $exceptions->report(fn(Throwable $e) => custom_log($e));
     })
     ->create();
