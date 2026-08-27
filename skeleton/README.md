@@ -1,104 +1,109 @@
 # Switch Framework (`celionatti/switch`)
 
-> A fast, modular, modern, and futuristic PHP framework. Built for high performance, developer happiness, and clean software architecture.
+> A fast, modular, modern, and futuristic PHP framework. Built for high performance, developer happiness, zero-compromise security, and clean software architecture.
 
 ---
 
 ## ⚡ Key Features
 
 - 🧩 **100% Modular Architecture**: Built on decoupled PSR-compliant packages (`switch/container`, `switch/http-message`, `switch/router`, `switch/events`, `switch/config`, `switch/kernel`, `switch/view`, `switch/database`, `switch/error-handler`, `switch/console`, `switch/head`, `switch/live`, `switch/controller`, `switch/session`, `switch/foundation`).
-- 🚀 **Blazing Fast**: Lightweight routing, lazy loading, and minimal memory overhead.
-- 🎨 **HTML Tag View Components**: Intuitive `<x-card>`, `<x-button>`, `<x-alert>`, `<x-modal>`, `<x-spinner>`, `<x-skeleton>`, and `<x-avatar>` UI tags with built-in fluid responsive CSS.
-- ⚡ **Switch Live**: Zero-JS SPA reactivity with instant transitions, DOM morphing, prefetching, and live state synchronization.
-- 🌊 **Switch Flow**: Model state machines with guarded transitions and automatic audit trails.
-- 🌉 **Switch Bridge**: Production-ready inbound/outbound webhook engine with HMAC signing, replay attack protection, and idempotency key deduplication.
-- 🛡️ **Security by Default**: Built-in CSRF protection (`@csrf`), honeypots (`@honeypot`), CSP nonces (`@nonce`), XSS sanitization (`cleanHtml`), and script breakout prevention.
-- 🗄️ **Fluent ORM & Database**: Active Record ORM, migration builder, eager loading (N+1 protection), soft deletes, JSON attribute casting, and scope builders.
-- 💥 **Futuristic Error Handler**: Beautiful dark-mode stack trace UI in development, silent secure pages in production, with custom reporters (Log, Slack, Sentry).
+- 🚀 **Sub-Millisecond Speed**: Pre-compiled regex routing, lightweight PSR-7/PSR-15 pipeline, and compiled view caching.
+- 📂 **Auto-Discovered Developer Utilities (`app/Utils/`)**: Drop procedural helper functions or utility classes into `app/Utils/` or `app/Helpers/` and they are **automatically loaded on boot with zero configuration**.
+- 🌊 **Switch Flow**: Model state machines with guarded transitions, lifecycle hooks, and automatic audit trails (`app/Flows/`).
+- ⚡ **Switch Live SPA Engine**: Zero-JS SPA reactivity with 0ms optimistic UI, drag-and-drop table/Kanban reordering, DOM morphing, and prefetching.
+- 🛡️ **Zero-Overhead Security by Default**: Automated security headers (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy`), sliding-window session expiration, CSRF token verification, and parameterized PDO queries.
+- ✉️ **Class-Based Mailables**: Clean email builder supporting HTML/text templates, attachments, and background queues (`app/Mail/`).
+- 🗄️ **Fluent ORM & Database**: Active Record ORM, migration builder, database seeders (`db:seed`), eager loading (N+1 protection), soft deletes, and JSON casting.
 - 🧪 **Switch Testbench**: Fluent Laravel-style testing DSL (`get`, `postJson`, `assertOk`, `assertJsonPath`, `assertJsonStructure`).
-- ⚡ **Colorful Switch CLI & Tinker**: Artisan-inspired CLI (`php switch`) with generator commands, serve, route list, and interactive `tinker` REPL shell.
+- ⚡ **Artisan-Style Switch CLI**: Generator commands (`make:action`, `make:controller`, `make:model`, `make:service`, `make:flow`, `make:mail`, `make:seeder`, `make:provider`), dev server (`serve`), and interactive `tinker` shell.
 
 ---
 
-## 📦 Installation
+## 📁 Canonical Application Structure (`app/*`)
 
-```bash
-composer create-project switch/switch my-app
-cd my-app
-```
-
----
-
-## 🚀 Quick Start
-
-Start the local development server:
-
-```bash
-php switch serve
-```
-
-Visit `http://127.0.0.1:8000` in your web browser!
-
----
-
-## 📁 Directory Structure
+For full details, code samples, and usage guides, see the [**Application Directory Architecture Guide**](docs/APP_ARCHITECTURE_GUIDE.md).
 
 ```
 my-app/
 ├── app/
-│   ├── Commands/          # Custom CLI commands
-│   ├── Controllers/       # HTTP Controllers
-│   ├── Events/            # Event listener classes
-│   ├── Middleware/        # PSR-15 Middleware
-│   └── Models/            # Database ORM models
+│   ├── Actions/           # Single-responsibility Domain Actions (make:action)
+│   ├── Commands/          # Custom CLI Console Commands (make:command)
+│   ├── Controllers/       # Slim HTTP & API Controllers (make:controller)
+│   ├── Events/            # Domain Events & Listeners (make:event)
+│   ├── Flows/             # State Machines & Lifecycle Approval Graphs (make:flow)
+│   ├── Mail/              # Class-based Mailables & Notifications (make:mail)
+│   ├── Middleware/        # PSR-15 HTTP Middleware (make:middleware)
+│   ├── Models/            # Database ORM Models & Entities (make:model)
+│   ├── Providers/         # Application Service Providers (make:provider)
+│   ├── Services/          # Domain Services & Business Logic (make:service)
+│   └── Utils/             # Auto-discovered custom functions & utility classes
 ├── bootstrap/
-│   └── app.php            # Framework bootstrapper
+│   └── app.php            # Framework bootstrapper & middleware stack
 ├── config/
-│   ├── app.php            # Application settings
-│   └── database.php       # Database configuration
+│   ├── app.php            # Application settings & service providers
+│   ├── auth.php           # Authentication & passwordless tokens config
+│   ├── database.php       # Database connections & drivers
+│   ├── security.php       # Security headers & CSRF settings
+│   └── session.php        # Sliding session expiration & cookie config
 ├── database/
 │   ├── database.sqlite    # SQLite database file
-│   └── migrations/        # Database migrations
+│   ├── migrations/        # Database schema migrations
+│   └── seeders/           # Database seeders (db:seed)
 ├── public/
-│   ├── index.php          # HTTP Front Controller
-│   └── .htaccess          # Apache rewrite rules
+│   ├── index.php          # Front Controller entrypoint
+│   └── .htaccess          # Web server rewrite rules
 ├── resources/
-│   └── views/             # Blade-style & component views
+│   └── views/             # Switch View templates & UI components
 ├── routes/
-│   ├── api.php            # API endpoints
+│   ├── api.php            # Stateless API endpoints
 │   └── web.php            # Web application routes
 ├── storage/
 │   ├── cache/             # System cache
 │   ├── logs/              # Application logs
-│   └── views/             # Compiled views
-├── .env                   # Environment variables
-├── composer.json          # Dependencies manifest
-└── switch                 # Switch CLI binary
+│   ├── sessions/          # File session storage
+│   └── views/             # Compiled blade views
+├── .env                   # Environment configuration
+├── composer.json          # Package manifest
+└── switch                 # CLI executable
 ```
 
 ---
 
-## 🛠️ Common Commands
+## 🛠️ CLI Generator Commands
 
 ```bash
-# Start dev server
-php switch serve
+# Domain & Business Logic
+php switch make:action PublishArticleAction
+php switch make:service BillingService
+php switch make:flow OrderFlow
 
-# Interactive Tinker REPL
-php switch tinker
+# HTTP & Database
+php switch make:controller PostController --resource
+php switch make:model Post -m -c -s -a
+php switch make:migration create_orders_table
+php switch make:seeder DatabaseSeeder
 
-# View routes table
-php switch route:list
+# Infrastructure & Communication
+php switch make:mail WelcomeUserMail
+php switch make:middleware EnsureUserIsAdmin
+php switch make:provider PaymentServiceProvider
+php switch make:command SendDigestCommand
+php switch make:event UserRegisteredEvent
 
-# Create controller
-php switch make:controller UserController --resource
-
-# Create model with migration
-php switch make:model Post -m
-
-# Run database migrations
+# Operations & Database
 php switch migrate
+php switch db:seed
+php switch serve
+php switch tinker
 ```
+
+---
+
+## 📄 Documentation
+
+- [Application Directory Architecture Guide (`app/*`)](docs/APP_ARCHITECTURE_GUIDE.md)
+- [Drag & Drop and Sorting Guide](docs/DRAG_DROP_SORTING_GUIDE.md)
+- [Complete Framework Usage Guide](docs/USAGE_GUIDE.md)
 
 ---
 

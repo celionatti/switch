@@ -38,12 +38,7 @@ class Post extends Model
      */
     public static function flow(): StateMachine
     {
-        return StateMachine::define('status')
-            ->states(['draft', 'published', 'archived'])
-            ->initial('draft')
-            ->allow('publish', from: 'draft', to: 'published')
-            ->allow('archive', from: 'published', to: 'archived')
-            ->allow('draft', from: 'archived', to: 'draft');
+        return \App\Flows\PostFlow::create('status');
     }
 
     public function user()
