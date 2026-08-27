@@ -139,6 +139,9 @@ class TemplateCompiler
         // View Fragment Caching: @cache / <cache>
         $contents = $this->compileCacheDirectives($contents);
 
+        // Vite Asset Bundling: @vite(...) / <vite entry="..." />
+        $contents = $this->compileViteDirectives($contents);
+
         return $contents;
     }
 
@@ -257,6 +260,31 @@ class TemplateCompiler
         $contents = preg_replace_callback('/@mock\s*\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*(\d+)\s*,\s*[\'"](\$[^\'"]+)[\'"]\s*\)/i', function ($m) {
             $varName = ltrim($m[3], '$');
             return '<?php $' . $varName . ' = function_exists(\'mock\') ? mock(\'' . addslashes($m[1]) . '\', ' . (int) $m[2] . ') : []; ?>';
+        }, $contents) ?? $contents;
+
+        return $contents;
+    }
+
+    /**
+     * Compile Vite asset directives.
+     */
+    private function compileViteDirectives(string $contents): string
+    {
+        // <vite entry="resources/js/app.js" /> or <s-vite entry="..." />
+        $contents = preg_replace_callback('/<(?:s-)?vite\s+[^>]*?(?:entry|entries|src)=([\'"])(.*?)\1[^>]*?\/?>/i', function ($m) {
+            $raw = trim($m[2]);
+            if (str_starts_with($raw, '[') && str_ends_with($raw, ']')) {
+                $expr = $this->compileDotSyntax($raw);
+            } else {
+                $expr = '\'' . addslashes($raw) . '\'';
+            }
+            return '<?= (new \\Switch\\View\\Vite\\ViteManifest(defined(\'BASE_PATH\') ? BASE_PATH : getcwd()))->render(' . $expr . '); ?>';
+        }, $contents) ?? $contents;
+
+        // @vite('resources/js/app.js') or @vite(['resources/css/app.css', 'resources/js/app.js'])
+        $contents = preg_replace_callback('/@vite\s*\(\s*(.*?)\s*\)/s', function ($m) {
+            $expr = $this->compileDotSyntax($m[1]);
+            return '<?= (new \\Switch\\View\\Vite\\ViteManifest(defined(\'BASE_PATH\') ? BASE_PATH : getcwd()))->render(' . $expr . '); ?>';
         }, $contents) ?? $contents;
 
         return $contents;

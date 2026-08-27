@@ -10,3 +10,6 @@ composer.lock
 push-sample.md
 suggest.txt
 scratch/
+/storage/
+/database/
+*.sqlite
