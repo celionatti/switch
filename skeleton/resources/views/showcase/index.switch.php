@@ -1,5 +1,9 @@
-<layout name="layouts.app" title="{{ $title }}">
-<section class="showcase-page">
+<layout name="layouts.app" />
+
+<section name="title">{{ $title }}</section>
+
+<section name="content">
+<div class="showcase-page">
     <style>
         .showcase-page {
             max-width: 1200px;
@@ -454,5 +458,6 @@ X-Switch-Idempotency: idem_4f9a88c2
             </a>
         </div>
     </div>
+</div>
 </section>
 </layout>
