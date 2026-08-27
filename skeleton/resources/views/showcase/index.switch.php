@@ -255,9 +255,12 @@
             </div>
 
             <div class="code-snippet-box">
-// Provide & Use Context in PHP:
+// Provide Server Context:
 Context::provide('app.tenant', ['name' => 'Acme Cloud']);
 $tenant = Context::use('app.tenant.name'); // "Acme Cloud"
+
+// Share with Frontend Client:
+Context::share('client.user', ['name' => 'Sarah Connor']);
             </div>
 
             <details style="margin-top: 1rem;">

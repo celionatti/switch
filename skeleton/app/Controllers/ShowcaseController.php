@@ -25,13 +25,14 @@ class ShowcaseController extends Controller
     {
         // 1. Context API Demo Computation
         Context::provide('app.theme', 'dark');
+        Context::markClient('app.theme');
         Context::provide('app.tenant', [
             'id' => 'tenant_9981',
             'name' => 'Acme Cloud Solutions',
             'tier' => 'enterprise',
             'features' => ['live_spa', 'audit_flow', 'crypto_tokens', 'sse_stream'],
         ]);
-        Context::provide('client.user', [
+        Context::share('client.user', [
             'name' => 'Sarah Connor',
             'role' => 'Lead Architect',
             'preferred_locale' => 'en_US',
