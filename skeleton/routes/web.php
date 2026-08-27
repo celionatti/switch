@@ -19,6 +19,13 @@ Route::get('/showcase', [ShowcaseController::class, 'index'])->name('showcase');
 Route::post('/showcase/mocks', [ShowcaseController::class, 'generateMocks'])->name('showcase.mocks');
 Route::post('/showcase/webhook', [ShowcaseController::class, 'dispatchWebhook'])->name('showcase.webhook');
 
+// Drag & Drop Sorting and Multi-Table Kanban Showcase
+use App\Controllers\KanbanController;
+Route::get('/kanban', [KanbanController::class, 'index'])->name('kanban.index');
+Route::get('/drag-drop', [KanbanController::class, 'index'])->name('dragdrop.index');
+Route::post('/api/kanban/reorder-table', [KanbanController::class, 'reorderTable'])->name('kanban.reorder.table');
+Route::post('/api/kanban/move-card', [KanbanController::class, 'moveCard'])->name('kanban.move.card');
+
 // Blog & Posts CRUD / Flow Web Routes
 Route::get('/posts', [PostWebController::class, 'index'])->name('posts.index');
 Route::get('/post', [PostWebController::class, 'index'])->name('posts.alias');

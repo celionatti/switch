@@ -23,6 +23,7 @@
             <a href="/" class="nav-item" switch-to switch-prefetch>Home</a>
             <a href="/posts" class="nav-item" switch-to switch-prefetch>Blog Posts</a>
             <a href="/features" class="nav-item" switch-to switch-prefetch>Features</a>
+            <a href="/kanban" class="nav-item" switch-to switch-prefetch>Drag & Drop</a>
             <a href="https://github.com/celionatti/switch" target="_blank" rel="noopener noreferrer" class="nav-item">Docs</a>
             <a href="https://github.com/celionatti/switch-live" target="_blank" rel="noopener noreferrer" class="nav-item">Live SPA</a>
             <a href="https://github.com/celionatti/switch-view" target="_blank" rel="noopener noreferrer" class="nav-item">View Engine</a>
