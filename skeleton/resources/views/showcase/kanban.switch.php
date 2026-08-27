@@ -119,16 +119,24 @@
 
         .drag-handle {
             color: var(--text-dim);
-            cursor: grab;
+            cursor: grab !important;
             font-size: 1.1rem;
             user-select: none;
+            -webkit-user-select: none;
             display: inline-block;
-            transition: color 0.15s ease, transform 0.15s ease;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: color 0.15s ease, transform 0.15s ease, background 0.15s ease;
         }
 
         .drag-handle:hover {
             color: var(--cyan-400);
+            background: rgba(6, 182, 212, 0.1);
             transform: scale(1.15);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing !important;
         }
 
         .tag-pill {
@@ -206,8 +214,10 @@
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
             padding: 1.15rem;
-            cursor: grab;
+            cursor: grab !important;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-user-drag: element;
             transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
@@ -219,7 +229,7 @@
         }
 
         .task-card:active {
-            cursor: grabbing;
+            cursor: grabbing !important;
         }
 
         .task-meta {
@@ -361,7 +371,7 @@
             <!-- Switch Live Single Table Sortable Directive -->
             <tbody id="roadmap-table-body" switch-sortable="/api/kanban/reorder-table" switch-debounce="250" switch-handle=".drag-handle">
                 @foreach($tableItems as $item)
-                    <tr data-id="{{ $item['id'] }}">
+                    <tr data-id="{{ $item['id'] }}" draggable="true">
                         <td style="text-align: center;">
                             <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
                         </td>
@@ -424,7 +434,7 @@
                  switch-action="/api/kanban/move-card"
                  switch-debounce="300">
                 @foreach($backlogTasks as $task)
-                    <div class="task-card" data-id="{{ $task['id'] }}">
+                    <div class="task-card" data-id="{{ $task['id'] }}" draggable="true">
                         <div class="task-meta">
                             <span class="task-id">{{ $task['id'] }}</span>
                             <span class="tag-pill tag-{{ $task['tag_color'] }}">{{ $task['tag'] }}</span>
@@ -457,7 +467,7 @@
                  switch-action="/api/kanban/move-card"
                  switch-debounce="300">
                 @foreach($inProgressTasks as $task)
-                    <div class="task-card" data-id="{{ $task['id'] }}">
+                    <div class="task-card" data-id="{{ $task['id'] }}" draggable="true">
                         <div class="task-meta">
                             <span class="task-id">{{ $task['id'] }}</span>
                             <span class="tag-pill tag-{{ $task['tag_color'] }}">{{ $task['tag'] }}</span>
@@ -490,7 +500,7 @@
                  switch-action="/api/kanban/move-card"
                  switch-debounce="300">
                 @foreach($completedTasks as $task)
-                    <div class="task-card" data-id="{{ $task['id'] }}">
+                    <div class="task-card" data-id="{{ $task['id'] }}" draggable="true">
                         <div class="task-meta">
                             <span class="task-id">{{ $task['id'] }}</span>
                             <span class="tag-pill tag-{{ $task['tag_color'] }}">{{ $task['tag'] }}</span>
